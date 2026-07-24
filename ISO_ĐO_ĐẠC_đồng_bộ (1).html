@@ -1,0 +1,2359 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SurveyHub - Quy Trình Hiện Trường</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+:root{
+  --bg:#0a0f1c;
+  --bg-panel:#121a2e;
+  --bg-panel-alt:#182342;
+  --bg-hover:#1e2c4d;
+  --border:#25335a;
+  --border-soft:#1a2440;
+  --accent:#f2a93c;
+  --accent-dim:#8a6626;
+  --accent-2:#ff6b35;
+  --success:#33d692;
+  --success-dim:#123826;
+  --danger:#ff5470;
+  --danger-dim:#3a1522;
+  --text:#eef1f8;
+  --text-muted:#8d9cbd;
+  --text-faint:#576088;
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --radius:12px;
+  --radius-sm:8px;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  background:
+    radial-gradient(900px 500px at 12% -8%, rgba(242,169,60,.08), transparent 60%),
+    radial-gradient(700px 500px at 100% 0%, rgba(255,107,53,.06), transparent 55%);
+  pointer-events:none; z-index:0;
+}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
+a{color:inherit;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+
+/* ---------- Layout shell ---------- */
+#app{position:relative;z-index:1;display:flex;min-height:100vh;}
+
+.rail{
+  width:240px;flex-shrink:0;
+  background:linear-gradient(180deg,var(--bg-panel),var(--bg));
+  border-right:1px solid var(--border-soft);
+  display:flex;flex-direction:column;
+  padding:20px 14px;
+  position:sticky;top:0;height:100vh;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 22px;}
+.brand-mark{
+  width:36px;height:36px;border-radius:9px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;color:#171008;font-size:15px;
+  box-shadow:0 4px 14px rgba(242,169,60,.28);
+}
+.brand-text .t1{font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:.2px;line-height:1.1;}
+.brand-text .t2{font-size:10.5px;color:var(--text-faint);letter-spacing:1.4px;text-transform:uppercase;margin-top:2px;}
+
+.nav-group{margin-bottom:6px;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:var(--radius-sm);
+  color:var(--text-muted);font-size:13.5px;font-weight:500;
+  cursor:pointer;transition:.15s;margin-bottom:2px;border:1px solid transparent;
+}
+.nav-item i, .nav-item svg{width:17px;height:17px;flex-shrink:0;opacity:.85;}
+.nav-item:hover{background:var(--bg-hover);color:var(--text);}
+.nav-item.active{background:var(--bg-panel-alt);color:var(--accent);border-color:var(--border);}
+.nav-item.active i, .nav-item.active svg{opacity:1;}
+
+.rail-spacer{flex:1;}
+
+.sync-box{
+  background:var(--bg-panel-alt);border:1px solid var(--border-soft);
+  border-radius:10px;padding:10px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px;
+}
+.sync-pill{
+  display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text-muted);
+}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;box-shadow:0 0 0 3px rgba(51,214,146,.15);}
+.sync-dot.syncing{background:var(--accent);box-shadow:0 0 0 3px rgba(242,169,60,.18);animation:pulse 1s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+.btn-sync-manual{
+  width:100%;padding:8px 10px;font-size:12px;border-radius:7px;
+  background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent);
+  display:flex;align-items:center;justify-content:center;gap:6px;font-weight:600;
+}
+.btn-sync-manual:hover{background:var(--accent);color:#181009;}
+
+.user-card{
+  display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;border:1px solid var(--border-soft);cursor:pointer;
+}
+.user-card:hover{background:var(--bg-hover);}
+.user-avatar{
+  width:30px;height:30px;border-radius:8px;background:var(--bg-panel-alt);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0;
+}
+.user-meta .name{font-size:12.5px;font-weight:600;}
+.user-meta .role{font-size:10.5px;color:var(--text-faint);}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.topbar{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 26px;border-bottom:1px solid var(--border-soft);
+  position:sticky;top:0;background:rgba(10,15,28,.85);backdrop-filter:blur(10px);z-index:5;
+}
+.topbar h1{font-family:var(--font-display);font-size:18px;margin:0;font-weight:600;}
+.topbar .sub{font-size:12px;color:var(--text-faint);margin-top:1px;}
+.topbar-spacer{flex:1;}
+.lang-toggle{
+  display:flex;background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:9px;padding:3px;font-size:12px;font-weight:600;
+}
+.lang-toggle button{
+  background:none;border:none;color:var(--text-faint);padding:6px 11px;border-radius:7px;
+}
+.lang-toggle button.active{background:var(--accent);color:#171008;}
+
+.content{padding:22px 26px 90px;max-width:1180px;width:100%;margin:0 auto;}
+
+/* ---------- buttons / inputs ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:9px;border:1px solid var(--border);
+  background:var(--bg-panel-alt);color:var(--text);font-size:13px;font-weight:600;transition:.15s;white-space:nowrap;
+}
+.btn:hover{background:var(--bg-hover);}
+.btn i, .btn svg{width:15px;height:15px;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));border-color:transparent;color:#181009;}
+.btn-primary:hover{filter:brightness(1.07);}
+.btn-ghost{background:transparent;border-color:var(--border-soft);color:var(--text-muted);}
+.btn-danger{background:var(--danger-dim);border-color:#5c2233;color:#ffb3c1;}
+.btn-sm{padding:6px 10px;font-size:12px;border-radius:7px;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:5px;font-weight:500;}
+.field input[type=text],.field input[type=number],.field input[type=date],.field select,.field textarea{
+  width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13.5px;
+}
+.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--accent-dim);border-color:var(--accent);}
+.field textarea{resize:vertical;min-height:56px;font-family:inherit;}
+.field-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;}
+.hint{font-size:11px;color:var(--text-faint);margin-top:4px;}
+
+/* ---------- cards ---------- */
+.card{
+  background:var(--bg-panel);border:1px solid var(--border-soft);border-radius:var(--radius);padding:18px;margin-bottom:16px;
+}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.card-title{font-family:var(--font-display);font-size:15px;font-weight:600;}
+
+/* dashboard project cards */
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+.proj-card{
+  background:var(--bg-panel);border:1px solid var(--border-soft);border-radius:var(--radius);padding:16px;cursor:pointer;transition:.15s;position:relative;overflow:hidden;
+}
+.proj-card:hover{border-color:var(--accent-dim);transform:translateY(-1px);}
+.proj-card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.proj-card .pname{font-family:var(--font-display);font-weight:600;font-size:14.5px;margin-bottom:2px;}
+.proj-card .ploc{font-size:11.5px;color:var(--text-faint);}
+.ring{width:52px;height:52px;flex-shrink:0;}
+.ring-track{fill:none;stroke:var(--border);stroke-width:4;}
+.ring-fill{fill:none;stroke:var(--accent);stroke-width:4;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .4s;}
+.ring-fill.done{stroke:var(--success);}
+.ring-label{font-family:var(--font-mono);font-size:12px;font-weight:600;fill:var(--text);}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.chip{
+  font-size:10.5px;padding:4px 8px;border-radius:6px;background:var(--bg-panel-alt);border:1px solid var(--border-soft);color:var(--text-muted);
+}
+.chip.miss{color:#ffcf8a;border-color:var(--accent-dim);background:rgba(242,169,60,.08);}
+.stripe-line{height:3px;border-radius:3px;margin:12px 0 0;background:repeating-linear-gradient(135deg,var(--border) 0 8px,var(--border-soft) 8px 16px);overflow:hidden;position:relative;}
+.stripe-line .fill{height:100%;background:repeating-linear-gradient(135deg,var(--accent) 0 8px,var(--accent-2) 8px 16px);border-radius:3px;transition:width .4s;}
+.stripe-line .fill.done{background:repeating-linear-gradient(135deg,var(--success) 0 8px,#1fae78 8px 16px);}
+
+.empty{
+  text-align:center;padding:60px 20px;color:var(--text-faint);
+}
+.empty i, .empty svg{width:46px;height:46px;opacity:.35;margin-bottom:14px;}
+.empty .e-title{font-family:var(--font-display);font-size:15px;color:var(--text-muted);margin-bottom:6px;}
+
+/* ---------- group / checklist ---------- */
+.group-header{
+  display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;padding:4px 0;
+}
+.group-eyebrow{
+  font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);letter-spacing:1px;
+}
+.group-name{font-family:var(--font-display);font-weight:600;font-size:14.5px;}
+.group-count{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);}
+.group-badge{
+  font-size:10px;padding:2px 7px;border-radius:5px;font-weight:700;letter-spacing:.3px;
+}
+.group-badge.ok{background:var(--success-dim);color:var(--success);}
+.group-badge.pending{background:rgba(242,169,60,.1);color:var(--accent);}
+.group-badge.na{background:var(--bg-panel-alt);color:var(--text-faint);}
+.chevron{margin-left:auto;width:16px;height:16px;color:var(--text-faint);transition:.2s;flex-shrink:0;}
+.chevron.open{transform:rotate(180deg);}
+.group-body{overflow:hidden;max-height:0;transition:max-height .25s ease;}
+.group-body.open{max-height:4000px;}
+.group-body-in{padding-top:14px;}
+
+.check-all-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg-panel-alt);border:1px solid var(--border-soft);
+  padding:8px 12px;border-radius:8px;margin-bottom:10px;font-size:12.5px;font-weight:600;
+}
+.check-all-label{display:flex;align-items:center;gap:8px;cursor:pointer;}
+
+.check-list{display:flex;flex-direction:column;gap:2px;}
+.check-item{
+  display:flex;align-items:flex-start;gap:10px;padding:8px 8px;border-radius:8px;transition:.12s;
+}
+.check-item:hover{background:var(--bg-panel-alt);}
+.check-box{
+  width:19px;height:19px;border-radius:6px;border:1.5px solid var(--border);background:var(--bg);flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;transition:.12s;cursor:pointer;
+}
+.check-box.checked{background:var(--success);border-color:var(--success);}
+.check-box i, .check-box svg{width:12px;height:12px;color:#08130d;display:none;}
+.check-box.checked i, .check-box.checked svg{display:block;}
+.check-box.locked{border-color:var(--accent-dim);}
+.check-label{font-size:13.5px;flex:1;line-height:1.4;}
+.check-meta{font-size:10.5px;color:var(--text-faint);margin-top:2px;}
+.check-item.checked .check-label{color:var(--text-muted);}
+.photo-req{font-size:10px;color:var(--accent);border:1px solid var(--accent-dim);padding:1px 6px;border-radius:5px;margin-left:6px;}
+
+.tol-box{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:var(--bg-panel-alt);border:1px solid var(--border-soft);border-radius:9px;padding:12px;margin:10px 0 14px;}
+.tol-flag{margin-top:10px;font-size:12px;padding:8px 10px;border-radius:8px;font-weight:600;}
+.tol-flag.bad{background:var(--danger-dim);color:#ffb3c1;}
+.tol-flag.good{background:var(--success-dim);color:var(--success);}
+
+/* entries */
+.na-toggle{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg-panel-alt);
+  border:1px solid var(--border-soft);padding:10px 12px;border-radius:9px;margin-bottom:12px;
+}
+.na-toggle span{font-size:13px;font-weight:500;}
+.switch{width:38px;height:22px;border-radius:20px;background:var(--border);position:relative;flex-shrink:0;transition:.15s;cursor:pointer;}
+.switch.on{background:var(--accent);}
+.switch::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:#0a0f1c;top:3px;left:3px;transition:.15s;}
+.switch.on::after{left:19px;background:#171008;}
+.entry-card{
+  border:1px solid var(--border-soft);background:var(--bg-panel-alt);border-radius:10px;padding:13px;margin-bottom:10px;
+}
+.entry-card .ehead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.entry-card .etitle{font-weight:600;font-size:13px;font-family:var(--font-mono);}
+.entry-thumb{width:100%;max-width:220px;border-radius:8px;border:1px solid var(--border-soft);margin-top:8px;display:block;}
+.entry-form{border:1px dashed var(--border);border-radius:10px;padding:14px;margin-top:10px;background:var(--bg);}
+.photo-input-wrap{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.photo-preview{width:70px;height:70px;border-radius:8px;object-fit:cover;border:1px solid var(--border);}
+
+.mini-actions{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.mini-btn{font-size:11px;padding:4px 8px;border-radius:6px;background:var(--bg);border:1px solid var(--border-soft);color:var(--text-muted);display:inline-flex;align-items:center;gap:4px;}
+.mini-btn.active{color:var(--accent);border-color:var(--accent-dim);}
+.mini-btn-danger{color:var(--danger);border-color:rgba(255,84,112,0.3);}
+.mini-btn-danger:hover{background:var(--danger-dim);}
+.note-input{width:100%;margin-top:6px;padding:7px 9px;border-radius:7px;border:1px solid var(--border-soft);background:var(--bg);color:var(--text);font-size:12.5px;}
+
+/* modals */
+.overlay{position:fixed;inset:0;background:rgba(4,7,15,.72);backdrop-filter:blur(3px);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{background:var(--bg-panel);border:1px solid var(--border);border-radius:14px;max-width:560px;width:100%;max-height:88vh;overflow:auto;padding:22px;}
+.modal h2{font-family:var(--font-display);font-size:17px;margin:0 0 16px;}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+.check-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;}
+.wt-opt{
+  display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);font-size:12.5px;cursor:pointer;
+}
+.wt-opt.on{border-color:var(--accent);background:rgba(242,169,60,.08);color:var(--accent);}
+.wt-opt input{accent-color:var(--accent);}
+
+/* toast */
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--bg-panel-alt);border:1px solid var(--border);
+  padding:11px 18px;border-radius:10px;font-size:13px;z-index:100;opacity:0;pointer-events:none;transition:.25s;box-shadow:0 10px 30px rgba(0,0,0,.4);}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
+
+/* report */
+.report-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+.report-sheet{background:#fff;color:#111;border-radius:10px;padding:34px 38px;max-width:820px;margin:0 auto;font-family:'Inter',sans-serif;}
+.report-sheet h2{font-family:var(--font-display);}
+.rp-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #14213d;padding-bottom:14px;margin-bottom:18px;}
+.rp-head .co{font-family:var(--font-display);font-weight:700;font-size:16px;color:#14213d;}
+.rp-head .sub{font-size:11px;color:#666;margin-top:2px;}
+.rp-head .meta{text-align:right;font-size:12px;color:#333;}
+.rp-title{text-align:center;font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:.5px;margin:6px 0 20px;color:#14213d;}
+.rp-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px;}
+.rp-table th,.rp-table td{border:1px solid #ccc;padding:6px 8px;text-align:left;}
+.rp-table th{background:#f0f2f6;font-weight:700;color:#14213d;}
+.rp-bar-track{background:#e7e9ee;border-radius:5px;height:8px;overflow:hidden;width:100%;}
+.rp-bar-fill{background:#f2a93c;height:100%;}
+.rp-missing{color:#b3261e;}
+.rp-sig{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px;text-align:center;font-size:12px;}
+.rp-sig .role{font-weight:700;margin-bottom:50px;}
+.rp-sig .line{border-top:1px solid #999;padding-top:6px;color:#555;}
+
+@media print{
+  body *{visibility:hidden!important;}
+  #report-print, #report-print *{visibility:visible!important;}
+  #report-print{position:absolute!important;top:0!important;left:0!important;width:100%!important;}
+  .report-sheet{border-radius:0;padding:12mm;max-width:none;box-shadow:none;}
+  .no-print, .rail, .topbar, .bottom-nav, #toast, #modalRoot{display:none!important;}
+}
+
+/* mobile */
+.bottom-nav{display:none;}
+@media (max-width:860px){
+  .rail{display:none;}
+  .main{width:100%;}
+  .content{padding:14px 14px 96px;}
+  .topbar{padding:14px 16px;}
+  .topbar h1{font-size:16px;}
+  .bottom-nav{
+    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:20;
+    background:rgba(10,15,28,.96);backdrop-filter:blur(10px);border-top:1px solid var(--border-soft);
+    padding:8px 6px calc(8px + var(--safe-bottom));
+  }
+  .bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text-faint);font-size:10px;padding:4px;border-radius:8px;}
+  .bn-item i, .bn-item svg{width:19px;height:19px;}
+  .bn-item.active{color:var(--accent);}
+  .proj-grid{grid-template-columns:1fr;}
+  .report-sheet{padding:20px 16px;}
+  .rp-sig{grid-template-columns:1fr;gap:24px;}
+}
+.hidden{display:none!important;}
+#loginScreen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;z-index:1;
+}
+.login-box{
+  width:100%;max-width:380px;background:var(--bg-panel);border:1px solid var(--border-soft);
+  border-radius:16px;padding:28px 26px;box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+.login-box .brand-mark{width:44px;height:44px;border-radius:11px;margin:0 auto 14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;color:#171008;font-size:17px;box-shadow:0 4px 14px rgba(242,169,60,.28);}
+.login-box h1{font-family:var(--font-display);font-size:18px;text-align:center;margin:0 0 4px;font-weight:600;}
+.login-box .sub{font-size:12px;color:var(--text-faint);text-align:center;margin-bottom:20px;}
+.login-error{font-size:12px;color:var(--danger);min-height:16px;margin-top:6px;text-align:center;}
+.cloud-pill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);justify-content:center;margin-top:14px;}
+.cloud-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--success);}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="brand-mark">SH</div>
+    <h1 id="loginTitle">Đăng nhập hệ thống</h1>
+    <div class="sub" id="loginSub">Đăng nhập bằng email công ty để đồng bộ công việc</div>
+    <div class="field"><label id="labelEmail">Email</label><input type="email" id="loginEmail" autocomplete="username"></div>
+    <div class="field"><label id="labelPass">Mật khẩu</label><input type="password" id="loginPass" autocomplete="current-password"></div>
+    <button class="btn btn-primary" id="btnLogin" style="width:100%;justify-content:center;">Đăng nhập</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="cloud-pill"><span class="dot"></span><span id="cloudPillText">Dữ liệu đồng bộ đám mây cho mọi tài khoản</span></div>
+
+    <div style="text-align:center;margin-top:16px;">
+      <button type="button" id="btnToggleSetup" style="background:none;border:none;color:var(--text-faint);font-size:11.5px;text-decoration:underline;cursor:pointer;">⚙️ Thiết lập tài khoản admin (chỉ dùng 1 lần)</button>
+    </div>
+
+    <div id="setupPanel" class="hidden" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-soft);">
+      <div class="hint" style="margin-bottom:10px;">Tạo (hoặc nâng quyền) tài khoản quản trị cao nhất, dùng chung cho SurveyHub &amp; app Giao nhận mẫu.</div>
+      <div class="field"><label>Email admin</label><input type="email" id="setupEmail" placeholder="haihaigeo@gmail.com"></div>
+      <div class="field"><label>Mật khẩu</label><input type="password" id="setupPass" placeholder="Tối thiểu 6 ký tự"></div>
+      <button class="btn btn-ghost" id="btnRunSetup" style="width:100%;justify-content:center;">Tạo / Cập nhật tài khoản Admin</button>
+      <div id="setupLog" style="margin-top:10px;font-size:11.5px;white-space:pre-wrap;line-height:1.6;"></div>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <nav class="rail" id="rail"></nav>
+  <div class="main">
+    <div class="topbar" id="topbar"></div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+<div class="bottom-nav hidden" id="bottomNav"></div>
+<div id="modalRoot"></div>
+<div id="toast"></div>
+
+<!-- Firebase (Auth + Firestore) for cross-account cloud sync -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+/* Helper for HTML escaping */
+function escapeHtml(str) {
+  if (typeof str !== 'string') return str;
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+function escapeAttr(str) {
+  if (typeof str !== 'string') return str;
+  return str.replace(/"/g, '&quot;');
+}
+
+const STR = {
+  appName:{vi:'SurveyHub',en:'SurveyHub'},
+  appTag:{vi:'Quy trình hiện trường',en:'Field Workflow'},
+  nav_dashboard:{vi:'Tổng quan',en:'Dashboard'},
+  nav_project:{vi:'Dự án hiện tại',en:'Current Project'},
+  nav_report:{vi:'Báo cáo ngày',en:'Daily Report'},
+  nav_settings:{vi:'Cài đặt',en:'Settings'},
+  sync_manual:{vi:'💾 Lưu dự án',en:'💾 Save Project'},
+  synced:{vi:'Đã đồng bộ',en:'Synced'},
+  syncing:{vi:'Đang lưu...',en:'Saving...'},
+  last_sync:{vi:'Lưu lúc:',en:'Last saved:'},
+  never_sync:{vi:'Chưa đồng bộ',en:'Not saved yet'},
+  new_project:{vi:'+ Dự án mới',en:'+ New Project'},
+  no_projects_title:{vi:'Chưa có dự án nào',en:'No projects yet'},
+  no_projects_sub:{vi:'Tạo dự án đầu tiên để bắt đầu checklist hiện trường.',en:'Create your first project to start the field checklist.'},
+  create_project:{vi:'Tạo dự án mới',en:'Create Project'},
+  project_name:{vi:'Tên công trình / dự án',en:'Project name'},
+  project_location:{vi:'Vị trí',en:'Location'},
+  project_date:{vi:'Ngày khảo sát',en:'Survey date'},
+  project_leader:{vi:'Người đứng công trình (Phụ trách chính)',en:'Project Leader / Supervisor'},
+  assign_checklist:{vi:'Phân công nhân sự thực hiện từng hạng mục',en:'Checklist Item Assignments'},
+  work_types:{vi:'Loại công việc',en:'Work types'},
+  cancel:{vi:'Hủy',en:'Cancel'},
+  save:{vi:'Lưu',en:'Save'},
+  progress:{vi:'Tiến độ',en:'Progress'},
+  missing_items:{vi:'Còn thiếu',en:'Missing'},
+  none_missing:{vi:'Hoàn tất checklist',en:'Checklist complete'},
+  open_project:{vi:'Mở dự án →',en:'Open project →'},
+  wt_topo:{vi:'Đo địa hình',en:'Topographic Survey'},
+  wt_boundary:{vi:'Đo ranh',en:'Boundary Survey'},
+  wt_flycam:{vi:'Bay Flycam',en:'Drone Flight'},
+  wt_leveling:{vi:'Dẫn thủy chuẩn',en:'Leveling Run'},
+  wt_infra:{vi:'Hạ tầng kỹ thuật',en:'Utility Infrastructure'},
+  wt_monitoring:{vi:'Quan trắc',en:'Monitoring'},
+  wt_layout:{vi:'Bố trí công trình',en:'Construction Layout'},
+  wt_asbuilt:{vi:'Hoàn công',en:'As-built Survey'},
+  add_group:{vi:'+ Thêm nhóm hạng mục',en:'+ Add checklist group'},
+  add_subtask:{vi:'+ Thêm công việc con',en:'+ Add subtask'},
+  select_group:{vi:'Chọn nhóm để thêm',en:'Select a group to add'},
+  add:{vi:'Thêm',en:'Add'},
+  not_present:{vi:'Không có hạng mục này tại công trường',en:'Not present at this site'},
+  add_entry:{vi:'+ Thêm mục',en:'+ Add entry'},
+  save_entry:{vi:'Lưu mục',en:'Save entry'},
+  edit:{vi:'Sửa',en:'Edit'},
+  delete:{vi:'Xóa',en:'Delete'},
+  delete_group:{vi:'Xóa công việc',en:'Delete task'},
+  delete_item:{vi:'Xóa mục',en:'Delete item'},
+  check_all:{vi:'Chọn tất cả',en:'Check All'},
+  uncheck_all:{vi:'Bỏ chọn tất cả',en:'Uncheck All'},
+  note:{vi:'Ghi chú',en:'Note'},
+  add_note:{vi:'+ Ghi chú',en:'+ Note'},
+  attach_photo:{vi:'📷 Đính ảnh',en:'📷 Attach photo'},
+  photo_attached:{vi:'📷 Đã có ảnh',en:'📷 Photo attached'},
+  photo_required_hint:{vi:'Bắt buộc phải đính ảnh trước khi đánh dấu hoàn thành',en:'Photo required before marking complete'},
+  measured_error:{vi:'Sai số đo được (mm)',en:'Measured error (mm)'},
+  allowed_error:{vi:'Sai số cho phép (mm)',en:'Allowed error (mm)'},
+  exceed_tolerance:{vi:'⚠ Vượt sai số cho phép',en:'⚠ Exceeds allowed tolerance'},
+  within_tolerance:{vi:'✓ Trong hạn sai số',en:'✓ Within tolerance'},
+  updated_by:{vi:'bởi',en:'by'},
+  your_name:{vi:'Tên của bạn',en:'Your name'},
+  your_role:{vi:'Vai trò',en:'Role'},
+  role_field:{vi:'Kỹ sư hiện trường',en:'Field Engineer'},
+  role_manager:{vi:'Quản lý',en:'Manager'},
+  settings_title:{vi:'Cài đặt & Máy tính lưu trữ',en:'Settings & Local Storage'},
+  language:{vi:'Ngôn ngữ',en:'Language'},
+  backup_restore:{vi:'Lưu trữ file trên Máy tính',en:'Local PC Storage & Backup'},
+  export_file:{vi:'💾 Xuất File dữ liệu lưu trên Máy tính',en:'💾 Save/Export Project File to PC'},
+  import_file:{vi:'📂 Mở / Dán File dự án từ Máy tính',en:'📂 Load/Import Project File from PC'},
+  danger_zone:{vi:'Khu vực nguy hiểm',en:'Danger zone'},
+  delete_project:{vi:'Xóa dự án này',en:'Delete this project'},
+  confirm_delete_project:{vi:'Xóa dự án này và toàn bộ dữ liệu checklist? Không thể hoàn tác.',en:'Delete this project and all its checklist data? This cannot be undone.'},
+  confirm_delete_group:{vi:'Xóa nhóm công việc này khỏi dự án?',en:'Delete this task group from project?'},
+  confirm_delete_item:{vi:'Xóa mục này khỏi danh sách?',en:'Delete this subtask item?'},
+  select_project_for_report:{vi:'Chọn dự án',en:'Select project'},
+  select_date:{vi:'Chọn ngày',en:'Select date'},
+  export_pdf:{vi:'📄 Xuất PDF / In',en:'📄 Export PDF / Print'},
+  copy_summary:{vi:'📋 Sao chép tóm tắt',en:'📋 Copy summary'},
+  copied:{vi:'Đã sao chép vào clipboard',en:'Copied to clipboard'},
+  report_title:{vi:'BÁO CÁO KHẢO SÁT HIỆN TRƯỜNG',en:'FIELD SURVEY DAILY REPORT'},
+  report_project:{vi:'Dự án',en:'Project'},
+  report_location:{vi:'Vị trí',en:'Location'},
+  report_date:{vi:'Ngày',en:'Date'},
+  report_generated:{vi:'Xuất lúc',en:'Generated at'},
+  report_group:{vi:'Hạng mục',en:'Section'},
+  report_status:{vi:'Trạng thái',en:'Status'},
+  report_completion:{vi:'Hoàn thành',en:'Completion'},
+  report_missing_list:{vi:'Danh sách hạng mục còn thiếu',en:'Outstanding items'},
+  report_activity:{vi:'Hoạt động trong ngày',en:'Today’s activity log'},
+  report_no_activity:{vi:'Không có hoạt động nào được ghi nhận trong ngày này.',en:'No activity recorded for this date.'},
+  report_notes_section:{vi:'Ghi chú hiện trường',en:'Field notes'},
+  sig_engineer:{vi:'Người khảo sát',en:'Field Engineer'},
+  sig_checker:{vi:'Kiểm tra',en:'Checked by'},
+  sig_manager:{vi:'Trưởng phòng đo đạc',en:'Survey Manager'},
+  status_complete:{vi:'Hoàn thành',en:'Complete'},
+  status_partial:{vi:'Đang thực hiện',en:'In progress'},
+  status_na:{vi:'Không áp dụng',en:'N/A'},
+  no_report_data:{vi:'Chưa có dữ liệu checklist cho dự án này.',en:'No checklist data for this project yet.'},
+  back:{vi:'← Quay lại',en:'← Back'},
+  entries_count:{vi:'mục đã ghi nhận',en:'entries recorded'},
+  yes:{vi:'Có',en:'Yes'},
+  no:{vi:'Không',en:'No'},
+  required:{vi:'bắt buộc',en:'required'},
+  assigned_to:{vi:'Phụ trách',en:'Assigned to'},
+  saved_locally:{vi:'Đã lưu dữ liệu!',en:'Data saved!'},
+  photo_required_toast:{vi:'Cần đính ảnh trước khi hoàn thành mục này',en:'Attach a photo before completing this item'},
+  login_title:{vi:'Đăng nhập hệ thống',en:'Sign in'},
+  login_sub:{vi:'Đăng nhập bằng email công ty để đồng bộ công việc',en:'Sign in with your company email to sync work'},
+  email:{vi:'Email',en:'Email'},
+  password:{vi:'Mật khẩu',en:'Password'},
+  login_btn:{vi:'Đăng nhập',en:'Sign in'},
+  invalid_login:{vi:'Sai email hoặc mật khẩu',en:'Invalid email or password'},
+  logging_in:{vi:'Đang đăng nhập...',en:'Signing in...'},
+  logout:{vi:'Đăng xuất',en:'Log out'},
+  account:{vi:'Tài khoản',en:'Account'},
+  cloud_synced:{vi:'Đã đồng bộ đám mây lúc',en:'Cloud synced at'},
+  syncing_cloud:{vi:'Đang đồng bộ...',en:'Syncing...'},
+  account_disabled:{vi:'Tài khoản đã bị vô hiệu hóa. Liên hệ quản trị viên.',en:'This account has been disabled. Contact your admin.'},
+};
+let LANG = 'vi';
+function t(key){ return (STR[key] && STR[key][LANG]) || key; }
+function tf(field){ return field[LANG] || field.vi || field.en || ''; }
+
+/* ---------------- Checklist template ---------------- */
+const WORK_TYPES = [
+  {id:'topo', key:'wt_topo'},
+  {id:'boundary', key:'wt_boundary'},
+  {id:'flycam', key:'wt_flycam'},
+  {id:'leveling', key:'wt_leveling'},
+  {id:'infra', key:'wt_infra'},
+  {id:'monitoring', key:'wt_monitoring'},
+  {id:'layout', key:'wt_layout'},
+  {id:'asbuilt', key:'wt_asbuilt'},
+];
+
+function I(vi,en){return {vi:vi,en:en};}
+
+const GROUPS = [
+  {id:'equipment', trigger:'always', name:I('Chuẩn bị thiết bị','Equipment Preparation'), type:'simple', items:[
+    I('Sào','Pole'), I('Mia','Leveling staff'), I('Máy thủy bình','Automatic level'), I('Chân máy','Tripod'), I('Pin Base','Base battery'),
+    I('Máy RTK Base','RTK base unit'),I('Rover','Rover'),I('Pin Rover','Rover battery'),
+    I('Pin Radio','Radio battery'),I('Bộ sạc','Charger'),I('Bộ đàm','Radio handset'),I('Flycam','Drone'),
+    I('Laptop','Laptop'),I('Dây USB','USB cable'),I('Sơn','Marking paint'),I('Búa','Hammer'),
+    I('Đinh','Nails'),I('Cọc gỗ','Wooden stakes'),I('Mốc','Survey markers'),I('Thước thép','Steel tape'),
+    I('GPS cầm tay','Handheld GPS'),I('SIM 4G','4G SIM card'),I('Internet','Internet access'),
+    I('Kiểm tra Firmware','Firmware check'),I('Kiểm tra Calibration','Calibration check')
+  ]},
+  {id:'docs', trigger:'always', name:I('Hồ sơ','Documentation'), type:'simple', items:[
+    I('Bản vẽ CAD','CAD drawing'),I('Bản đồ','Map'),I('Ranh','Boundary file'),I('Toạ độ','Coordinate list'),
+    I('Cao độ chuẩn','Reference elevation'),I('File thiết kế','Design file'),I('Danh sách mốc','Benchmark list'),
+    I('Số điện thoại Chủ đầu tư','Investor phone number'),I('Số điện thoại TVGS','Supervisor phone number'),I('Giấy giới thiệu','Introduction letter')
+  ]},
+  {id:'arrival', trigger:'always', name:I('Đến công trường','Site Arrival'), type:'simple', items:[
+    I('Gặp BCH','Meet site management'),I('Báo bảo vệ','Notify security'),I('Xin phép đo','Request survey permission'),
+    I('Kiểm tra an toàn','Safety check'),I('PPE','PPE'),I('Chụp hiện trạng','Photograph existing conditions'),
+    I('Xác nhận phạm vi','Confirm survey scope')
+  ]},
+  {id:'benchmark', trigger:['topo','leveling','monitoring'], name:I('Kiểm tra mốc','Benchmark Check'), type:'simple', photoRequiredIdx:1, items:[
+    I('Kiểm tra mốc gốc','Check original benchmark'),I('Chụp ảnh','Photograph marker'),I('Đối chiếu tọa độ','Verify coordinates'),
+    I('Đối chiếu cao độ','Verify elevation'),I('Kiểm tra ổn định','Check stability'),I('Kiểm tra phá hủy','Check for damage'),
+    I('Đóng bổ sung','Install supplementary marker')
+  ]},
+  {id:'leveling', trigger:['leveling','topo'], name:I('Dẫn thủy chuẩn','Leveling Run'), type:'simple', hasTolerance:true, items:[
+    I('Chọn tuyến','Select route'),I('Dẫn đi','Run out'),I('Dẫn về','Run back'),I('Sai số đạt','Error within limit'),
+    I('Chụp mốc','Photograph marker'),I('Ghi sổ','Field book entry'),I('Bình sai','Adjustment computed')
+  ]},
+  {id:'rtk', trigger:['topo'], name:I('Đo RTK','RTK Survey'), type:'simple', items:[
+    I('Kiểm tra FIX','Check FIX status'),I('PDOP','PDOP'),I('Kiểm tra Epoch','Check epoch count'),
+    I('Kiểm tra Base','Check base station'),I('Kiểm tra Radio','Check radio link'),I('Đo điểm khống chế','Survey control points'),
+    I('Đo kiểm','Check survey'),I('Đo chi tiết','Detail survey'),I('Đo kiểm cuối','Final check survey')
+  ]},
+  {id:'boundary', trigger:['boundary'], name:I('Đo ranh','Boundary Survey'), type:'simple', items:[
+    I('Góc ranh','Boundary corners'),I('Cọc ranh','Boundary stakes'),I('Hàng rào','Fence'),I('Tường','Wall'),
+    I('Mốc','Marker'),I('Hẻm','Alley'),I('Đường','Road'),I('Nhà dân','Residential structure'),I('Hành lang','Right-of-way corridor')
+  ]},
+  {id:'road', trigger:['topo'], name:I('Đo đường','Road Survey'), type:'simple', items:[
+    I('Tim đường','Road centerline'),I('Mép trái','Left edge'),I('Mép phải','Right edge'),I('Bó vỉa','Curb'),
+    I('Lề','Shoulder'),I('Vạch sơn','Paint markings'),I('Cao độ','Elevation'),I('Bề rộng','Width'),I('Độ dốc','Slope')
+  ]},
+  {id:'electric', trigger:['infra'], name:I('Điện','Electrical'), type:'entries', fields:[
+    {id:'ptype',label:I('Loại','Type'),type:'select',options:[I('Cột điện','Utility pole'),I('Trạm điện','Transformer station'),I('Tủ điện','Electrical cabinet'),I('Hộp điện','Junction box'),I('Đường dây','Overhead line'),I('Điện ngầm','Underground line')]},
+    {id:'code',label:I('Số hiệu','Code / ID'),type:'text'},
+    {id:'height',label:I('Chiều cao (m)','Height (m)'),type:'number'},
+    {id:'wireCount',label:I('Số dây','Wire count'),type:'number'},
+    {id:'elevation',label:I('Cao độ','Elevation'),type:'number'},
+  ]},
+  {id:'water', trigger:['infra'], name:I('Cấp nước','Water Supply'), type:'entries', fields:[
+    {id:'ptype',label:I('Loại','Type'),type:'select',options:[I('Van','Valve'),I('Đồng hồ nước','Water meter'),I('Trụ cứu hỏa','Fire hydrant'),I('Hố ga nước','Water manhole'),I('Ống cấp nước','Water pipe')]},
+    {id:'size',label:I('Kích thước / Đường kính','Size / Diameter'),type:'text'},
+    {id:'direction',label:I('Hướng tuyến','Route direction'),type:'text'},
+    {id:'elevation',label:I('Cao độ','Elevation'),type:'number'},
+  ]},
+  {id:'culvert', trigger:['infra'], name:I('Cống','Culverts & Drainage'), type:'entries', fields:[
+    {id:'code',label:I('Mã cống','Culvert code'),type:'text'},
+    {id:'shape',label:I('Hình dạng','Shape'),type:'select',options:[I('Tròn','Round'),I('Vuông','Square'),I('Chữ nhật','Rectangular'),I('Hình thang','Trapezoidal')]},
+    {id:'diameter',label:I('Đường kính / Kích thước','Diameter / Size'),type:'text'},
+    {id:'material',label:I('Vật liệu','Material'),type:'select',options:[I('Bê tông','Concrete'),I('Bê tông cốt thép','Reinforced concrete'),I('Nhựa HDPE','HDPE plastic'),I('Kim loại','Metal'),I('Đá xây','Masonry'),I('Khác','Other')]},
+    {id:'capElev',label:I('Cao độ nắp','Cap elevation'),type:'number'},
+    {id:'topElev',label:I('Cao độ miệng trên','Top opening elevation'),type:'number'},
+    {id:'bottomElev',label:I('Cao độ đáy','Invert elevation'),type:'number'},
+    {id:'inElev',label:I('Cao độ đáy ống vào','Inlet invert elevation'),type:'number'},
+    {id:'outElev',label:I('Cao độ đáy ống ra','Outlet invert elevation'),type:'number'},
+    {id:'branches',label:I('Số nhánh','Branch count'),type:'number'},
+    {id:'flowDir',label:I('Hướng chảy','Flow direction'),type:'text'},
+    {id:'condition',label:I('Tình trạng','Condition'),type:'select',options:[I('Tốt','Good'),I('Hư hỏng nhẹ','Minor damage'),I('Hư hỏng nặng','Major damage'),I('Tắc nghẽn','Blocked')]},
+    {id:'hasWater',label:I('Có nước','Water present'),type:'checkbox'},
+    {id:'hasSilt',label:I('Có bùn','Silt present'),type:'checkbox'},
+    {id:'hasTrash',label:I('Có rác','Debris present'),type:'checkbox'},
+  ]},
+  {id:'underground', trigger:['infra'], name:I('Hạ tầng ngầm','Underground Utilities'), type:'entries', fields:[
+    {id:'ptype',label:I('Loại','Type'),type:'select',options:[I('Cáp điện','Power cable'),I('Cáp viễn thông','Telecom cable'),I('Ống HDPE','HDPE pipe'),I('Ống PVC','PVC pipe'),I('Ống cấp nước','Water pipe'),I('Ống cứu hỏa','Fire main'),I('Cống','Culvert'),I('Mương','Drainage channel'),I('Gas','Gas line')]},
+    {id:'depth',label:I('Độ sâu ước tính (m)','Estimated depth (m)'),type:'number'},
+  ]},
+  {id:'flycam', trigger:['flycam'], name:I('Flycam','Drone Flight'), type:'simple', items:[
+    I('Kiểm tra vùng cấm','Check no-fly zone'),I('Pin','Battery'),I('SD Card','SD card'),I('Home Point','Home point'),
+    I('Chụp tổng thể','Overview photos'),I('Chụp chi tiết','Detail photos'),I('Video','Video'),I('Bay lưới','Grid flight'),I('Bay xiên','Oblique flight')
+  ]},
+  {id:'extension', trigger:['topo'], name:I('Đo mở rộng','Extended Survey'), type:'simple', items:[
+    I('Đo thêm 20m','Extend 20m beyond scope'),I('Đo đường nhánh','Survey side road'),I('Đo giao lộ','Survey intersection'),
+    I('Đo mương','Survey drainage channel'),I('Đo taluy','Survey embankment/slope'),I('Đo cây','Survey trees'),
+    I('Đo cột','Survey poles'),I('Đo biển báo','Survey signage')
+  ]},
+  {id:'departure', trigger:'always', name:I('Trước khi rời công trường','Before Leaving Site'), type:'simple', items:[
+    I('Kiểm tra đủ điểm','Verify all points collected'),I('Kiểm tra ảnh','Verify photos'),I('Backup','Backup data'),
+    I('Upload Cloud','Upload to cloud'),I('Gửi nhóm','Send to team'),I('Kiểm tra pin','Check batteries'),
+    I('Thu dọn','Pack up equipment'),I('Báo BCH','Notify site management')
+  ]},
+];
+function groupById(id){ return GROUPS.find(g=>g.id===id); }
+function autoGroupsForWorkTypes(wts){
+  const ids = [];
+  GROUPS.forEach(g=>{
+    if(g.trigger==='always') { ids.push(g.id); return; }
+    if(Array.isArray(g.trigger) && g.trigger.some(tr=>wts.includes(tr))) ids.push(g.id);
+  });
+  return ids;
+}
+
+/* ---------------- Icons Helper ---------------- */
+const ICONS = {
+  dashboard:'<i data-lucide="layout-dashboard"></i>',
+  project:'<i data-lucide="folder"></i>',
+  report:'<i data-lucide="file-text"></i>',
+  settings:'<i data-lucide="settings"></i>',
+  check:'<i data-lucide="check"></i>',
+  empty:'<i data-lucide="inbox"></i>',
+  save:'<i data-lucide="save"></i>',
+  trash:'<i data-lucide="trash-2"></i>',
+  plus:'<i data-lucide="plus"></i>',
+  image:'<i data-lucide="image"></i>'
+};
+
+/* ---------------- State ---------------- */
+const S = {
+  view:'dashboard',
+  currentProjectId:null,
+  projects:[],
+  checklists:{},          // projectId -> checklist object
+  activity:{},            // projectId -> array of log entries
+  user:{name:'VIỆT PHẠM', role:'field'},
+  syncing:false,
+  lastSyncTime:null,
+  openGroups:{},
+  addGroupPickerOpen:false,
+  reportProjectId:null,
+  reportDate:new Date().toISOString().slice(0,10),
+  entryFormOpenFor:null,
+  entryEditing:null,
+  deleteTarget: null      // For delete modal context
+};
+
+/* ---------------- LocalStorage Helpers (UI-only prefs: language) ---------------- */
+function storeGet(key){
+  try { return localStorage.getItem('surveyhub_'+key); } catch(e){ return null; }
+}
+function storeSet(key, value){
+  try { localStorage.setItem('surveyhub_'+key, value); return true; } catch(e){ return false; }
+}
+
+/* =========================================================
+   FIREBASE (Auth + Firestore) — cloud sync across accounts
+   Reuses the same HAIC Firebase backend as the Handover app
+   ("hai-sample-handover") so both tools share one login and
+   one set of accounts. SurveyHub data lives in its own
+   collections: surveyhub_projects / surveyhub_checklists /
+   surveyhub_activity — so it never collides with Handover data.
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyAWi-blH1U1UZkBdAhLqRoFntQ6UwqJhYU",
+  authDomain: "hai-sample-handover.firebaseapp.com",
+  projectId: "hai-sample-handover",
+  storageBucket: "hai-sample-handover.firebasestorage.app",
+  messagingSenderId: "84791737732",
+  appId: "1:84791737732:web:1c8ffbfb297659c233f1d1"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+db.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn('persistence', e.code));
+
+const PROJECTS_COL = 'surveyhub_projects';
+const CHECKLISTS_COL = 'surveyhub_checklists';
+const ACTIVITY_COL = 'surveyhub_activity';
+const USERS_COL = 'users';
+// Tài khoản admin gốc — luôn được tự động cấp quyền "manager" khi đăng nhập.
+const SUPER_ADMIN_EMAIL = 'haihaigeo@gmail.com';
+
+let unsubProjects = null, unsubChecklists = null, unsubActivity = null;
+
+function localizeLoginScreen(){
+  document.getElementById('loginTitle').textContent = t('login_title');
+  document.getElementById('loginSub').textContent = t('login_sub');
+  document.getElementById('labelEmail').textContent = t('email');
+  document.getElementById('labelPass').textContent = t('password');
+  document.getElementById('btnLogin').textContent = t('login_btn');
+  document.getElementById('cloudPillText').textContent = LANG==='vi' ? 'Dữ liệu đồng bộ đám mây cho mọi tài khoản' : 'Work data syncs live to every account';
+}
+
+function doLogin(){
+  const email = (document.getElementById('loginEmail').value||'').trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value||'';
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('btnLogin');
+  errEl.textContent = '';
+  if(!email || !pass){ errEl.textContent = t('invalid_login'); return; }
+  btn.disabled = true; btn.textContent = t('logging_in');
+  auth.signInWithEmailAndPassword(email, pass)
+    .catch(err=>{
+      errEl.textContent = t('invalid_login') + ' (' + err.code + ')';
+    })
+    .finally(()=>{ btn.disabled = false; btn.textContent = t('login_btn'); });
+}
+
+function doLogout(){
+  teardownRealtimeSync();
+  auth.signOut();
+}
+
+function teardownRealtimeSync(){
+  if(unsubProjects){ unsubProjects(); unsubProjects = null; }
+  if(unsubChecklists){ unsubChecklists(); unsubChecklists = null; }
+  if(unsubActivity){ unsubActivity(); unsubActivity = null; }
+}
+
+// 'superadmin' (vai trò dùng chung với app Giao nhận mẫu) được coi tương đương 'manager' trong SurveyHub
+function isManagerTierRole(role){ return role==='manager' || role==='superadmin'; }
+
+auth.onAuthStateChanged(async (user)=>{
+  if(!user){
+    teardownRealtimeSync();
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('bottomNav').classList.add('hidden');
+    localizeLoginScreen();
+    return;
+  }
+  const email = user.email.toLowerCase();
+  const userRef = db.collection(USERS_COL).doc(email);
+  try {
+    let snap = await userRef.get();
+    const isSuperAdmin = email === SUPER_ADMIN_EMAIL;
+    if(!snap.exists){
+      // role 'superadmin' để tương thích với app Giao nhận mẫu (dùng chung collection "users")
+      await userRef.set({
+        email, role: isSuperAdmin ? 'superadmin' : 'field',
+        displayName: isSuperAdmin ? 'Admin' : email.split('@')[0],
+        active:true, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      snap = await userRef.get();
+    } else if(isSuperAdmin && !isManagerTierRole(snap.data().role) || (isSuperAdmin && snap.data().active === false)){
+      // Đảm bảo tài khoản admin gốc luôn có quyền quản lý và luôn hoạt động,
+      // nhưng không hạ cấp nếu đã là 'superadmin' (vai trò dùng chung với app Giao nhận mẫu)
+      await userRef.set({ role:'superadmin', active:true }, { merge:true });
+      snap = await userRef.get();
+    }
+    const data = snap.data() || {};
+    if(data.active === false){
+      await auth.signOut();
+      alert(t('account_disabled'));
+      return;
+    }
+    S.user = { name: data.displayName || email, role: data.role || 'field', email };
+  } catch(err){
+    console.error('[SurveyHub] user profile load failed', err);
+    S.user = { name: email, role:'field', email };
+  }
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('bottomNav').classList.remove('hidden');
+  setupRealtimeSync();
+});
+
+function setupRealtimeSync(){
+  teardownRealtimeSync();
+  S.syncing = true;
+
+  unsubProjects = db.collection(PROJECTS_COL).onSnapshot(snap=>{
+    S.projects = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    if(S.projects.length === 0){
+      initDefaultData();
+    } else if(!S.currentProjectId || !S.projects.find(p=>p.id===S.currentProjectId)){
+      S.currentProjectId = S.projects[0].id;
+    }
+    S.syncing = false;
+    S.lastSyncTime = nowISO();
+    render();
+  }, err=>{
+    console.error('[SurveyHub] projects sync error', err);
+    S.syncing = false; render();
+  });
+
+  unsubChecklists = db.collection(CHECKLISTS_COL).onSnapshot(snap=>{
+    snap.docChanges().forEach(ch=>{
+      const pid = ch.doc.id;
+      if(ch.type === 'removed'){ delete S.checklists[pid]; return; }
+      let cl = ch.doc.data() || {groups:{}};
+      const project = S.projects.find(p=>p.id===pid);
+      if(project) cl = ensureChecklistShape(project, cl);
+      S.checklists[pid] = cl;
+    });
+    render();
+  }, err=>console.error('[SurveyHub] checklists sync error', err));
+
+  unsubActivity = db.collection(ACTIVITY_COL).onSnapshot(snap=>{
+    snap.forEach(doc=>{ S.activity[doc.id] = (doc.data()||{}).logs || []; });
+    snap.docChanges().forEach(ch=>{ if(ch.type==='removed') delete S.activity[ch.doc.id]; });
+    render();
+  }, err=>console.error('[SurveyHub] activity sync error', err));
+}
+
+function newId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function nowISO(){ return new Date().toISOString(); }
+function fmtDateTime(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString(LANG==='vi'?'vi-VN':'en-US',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function fmtTime(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleTimeString(LANG==='vi'?'vi-VN':'en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+function fmtDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso+(iso.length<=10?'T00:00:00':''));
+  return d.toLocaleDateString(LANG==='vi'?'vi-VN':'en-US',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+/* Default project initialisation if the shared cloud workspace is empty (runs once) */
+let _defaultDataInitInFlight = false;
+function initDefaultData() {
+  if(_defaultDataInitInFlight) return;
+  _defaultDataInitInFlight = true;
+  const defaultProj = {
+    id: 'default_proj_1',
+    name: 'Khảo sát hiện trường mẫu',
+    location: 'Công trường A',
+    date: new Date().toISOString().slice(0,10),
+    leader: S.user.name || 'VIỆT PHẠM',
+    workTypes: ['topo', 'infra'],
+    groupIds: ['equipment', 'docs', 'arrival', 'benchmark', 'rtk', 'departure'],
+    assignments: { 'equipment': S.user.name || 'VIỆT PHẠM' },
+    customItems: {},
+    createdAt: nowISO(),
+    createdBy: S.user.name || 'VIỆT PHẠM'
+  };
+  
+  S.projects = [defaultProj];
+  saveProjects();
+  
+  const cl = emptyChecklist(defaultProj);
+  // Prefill default subtasks for equipment
+  const defaultItems = [
+    { title: 'Sào', author: 'VIỆT PHẠM', timestamp: '11:23 23/07/2026', checked: true, note: '' },
+    { title: 'Mia', author: 'VIỆT PHẠM', timestamp: '11:23 23/07/2026', checked: true, note: '' },
+    { title: 'Máy thủy bình', author: 'VIỆT PHẠM', timestamp: '11:23 23/07/2026', checked: true, note: '' },
+    { title: 'Chân máy', author: 'VIỆT PHẠM', timestamp: '11:23 23/07/2026', checked: true, note: '' },
+    { title: 'Pin Base', author: 'VIỆT PHẠM', timestamp: '11:23 23/07/2026', checked: true, note: '' }
+  ];
+  
+  // Find indexes in template equipment items and mark checked
+  const eqGroup = groupById('equipment');
+  if(eqGroup) {
+    defaultItems.forEach(di => {
+      const idx = eqGroup.items.findIndex(item => tf(item).toLowerCase() === di.title.toLowerCase());
+      if(idx !== -1) {
+        cl.groups['equipment'].items[idx] = {
+          checked: di.checked,
+          note: di.note,
+          updatedBy: di.author,
+          updatedAt: nowISO()
+        };
+      }
+    });
+  }
+  
+  S.checklists[defaultProj.id] = cl;
+  saveChecklist(defaultProj.id);
+  S.currentProjectId = defaultProj.id;
+}
+
+function emptyChecklist(project){
+  const gids = project.groupIds || [];
+  const groups = {};
+  gids.forEach(gid=>{
+    const g = groupById(gid);
+    if(!g) return;
+    if(g.type==='simple'){
+      groups[gid] = { items:{}, tolerance: g.hasTolerance? {measured:'',allowed:''} : null };
+    } else {
+      groups[gid] = { na:false, entries:[] };
+    }
+  });
+  return {groups};
+}
+
+function ensureChecklistShape(project, cl){
+  if(!cl.groups) cl.groups = {};
+  (project.groupIds || []).forEach(gid=>{
+    const g = groupById(gid);
+    if(!g) return;
+    if(!cl.groups[gid]){
+      cl.groups[gid] = g.type==='simple' ? {items:{}, tolerance: g.hasTolerance?{measured:'',allowed:''}:null} : {na:false, entries:[]};
+    }
+  });
+  return cl;
+}
+
+function getGroupItems(project, gid) {
+  const g = groupById(gid);
+  if(!g) return [];
+  let items = g.items ? g.items.map(item => ({ title: tf(item), isCustom: false })) : [];
+  if(project.customItems && project.customItems[gid]) {
+    items = items.concat(project.customItems[gid].map(ci => ({ title: ci.title, isCustom: true, id: ci.id })));
+  }
+  return items;
+}
+
+/* ---------------- Load / Persist (Firestore-backed, shared across accounts) ---------------- */
+function loadUser(){
+  // Identity now comes from Firebase Auth + the users/{email} profile doc (see onAuthStateChanged).
+  // Only the language display preference stays local to this device.
+  const savedLang = storeGet('lang-pref');
+  if(savedLang) LANG = savedLang;
+}
+function saveUser(){
+  storeSet('lang-pref', LANG);
+  if(S.user && S.user.email){
+    db.collection(USERS_COL).doc(S.user.email).set(
+      { displayName: S.user.name, role: S.user.role },
+      { merge:true }
+    ).catch(e=>console.error('[SurveyHub] saveUser failed', e));
+  }
+}
+
+// Projects & checklists arrive live via the onSnapshot listeners set up in setupRealtimeSync().
+// loadProjects()/loadChecklist() are kept only so any project not yet mirrored in local state
+// gets its shape ensured; the actual source of truth is Firestore.
+function loadProjects(){ /* handled by realtime listener; no-op kept for compatibility */ }
+
+function saveProjects(){
+  S.projects.forEach(p=>{
+    db.collection(PROJECTS_COL).doc(p.id).set(p).catch(e=>console.error('[SurveyHub] saveProjects failed', p.id, e));
+  });
+}
+
+function loadChecklist(projectId){
+  const project = S.projects.find(p=>p.id===projectId);
+  if(!project) return null;
+  let cl = S.checklists[projectId];
+  if(!cl) cl = emptyChecklist(project);
+  cl = ensureChecklistShape(project, cl);
+  S.checklists[projectId] = cl;
+  saveChecklist(projectId); // make sure a doc exists in the cloud too
+  return cl;
+}
+function saveChecklist(projectId){
+  const cl = S.checklists[projectId];
+  if(!cl) return;
+  db.collection(CHECKLISTS_COL).doc(projectId).set(cl).catch(e=>console.error('[SurveyHub] saveChecklist failed', projectId, e));
+}
+
+function loadActivity(projectId){
+  return S.activity[projectId] || [];
+}
+function pushActivity(projectId, action, detail){
+  const entry = {ts:nowISO(), user:S.user.name||'—', action, detail};
+  if(!S.activity[projectId]) S.activity[projectId] = [];
+  S.activity[projectId].push(entry);
+  db.collection(ACTIVITY_COL).doc(projectId).set(
+    { logs: firebase.firestore.FieldValue.arrayUnion(entry) },
+    { merge:true }
+  ).catch(e=>console.error('[SurveyHub] pushActivity failed', projectId, e));
+}
+
+/* ---------------- Manual Sync/Save Trigger ----------------
+   Data already streams to every logged-in account in real time via the
+   onSnapshot listeners in setupRealtimeSync(). This button forces an
+   immediate push of the current project + checklist so a slow/offline
+   connection doesn't leave a device's edits stranded locally. */
+function manualSyncSave(){
+  S.syncing = true;
+  renderSyncPill();
+  
+  saveProjects();
+  if(S.currentProjectId) {
+    saveChecklist(S.currentProjectId);
+  }
+  
+  S.lastSyncTime = nowISO();
+  
+  setTimeout(()=>{
+    S.syncing = false;
+    renderSyncPill();
+    toast(t('cloud_synced') + ' ' + fmtTime(S.lastSyncTime));
+  }, 300);
+}
+
+/* ---------------- Toast ---------------- */
+let toastTimer=null;
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2400);
+}
+
+/* ---------------- Progress calc ---------------- */
+function groupProgress(project, gid){
+  const g = groupById(gid);
+  const cl = S.checklists[project.id];
+  if(!cl || !cl.groups[gid]) return {done:0,total:0,na:false};
+  const gs = cl.groups[gid];
+  if(g.type==='simple'){
+    const allItems = getGroupItems(project, gid);
+    const total = allItems.length;
+    let done = 0;
+    allItems.forEach((_,idx)=>{ if(gs.items[idx] && gs.items[idx].checked) done++; });
+    return {done,total,na:false};
+  } else {
+    if(gs.na) return {done:1,total:1,na:true};
+    const total = Math.max(gs.entries.length,1);
+    return {done: gs.entries.length>0 ? gs.entries.length : 0, total: gs.entries.length>0? gs.entries.length: 1, na:false, isEntry:true, count:gs.entries.length};
+  }
+}
+function projectProgress(project){
+  let done=0, total=0; const missing=[];
+  (project.groupIds || []).forEach(gid=>{
+    const g = groupById(gid);
+    const p = groupProgress(project, gid);
+    if(g.type==='simple'){
+      done += p.done; total += p.total;
+      if(p.done<p.total) missing.push(tf(g.name));
+    } else {
+      total += 1;
+      if(p.na || p.count>0) done += 1;
+      else missing.push(tf(g.name));
+    }
+  });
+  return {done, total, pct: total? Math.round(done/total*100):0, missing};
+}
+
+/* ================= RENDER: SHELL ================= */
+function render(){
+  renderRail();
+  renderBottomNav();
+  renderTopbar();
+  renderContent();
+  if(window.lucide) {
+    lucide.createIcons();
+  }
+}
+
+function renderSyncPill(){
+  const dot = document.querySelector('.sync-dot');
+  const label = document.querySelector('.sync-time-text');
+  if(dot) dot.classList.toggle('syncing', S.syncing);
+  if(label){
+    label.textContent = S.syncing ? t('syncing') : (S.lastSyncTime ? t('last_sync') + ' ' + fmtTime(S.lastSyncTime) : t('never_sync'));
+  }
+}
+
+function navItems(){
+  return [
+    {id:'dashboard', key:'nav_dashboard', icon:ICONS.dashboard},
+    {id:'project', key:'nav_project', icon:ICONS.project},
+    {id:'report', key:'nav_report', icon:ICONS.report},
+    {id:'settings', key:'nav_settings', icon:ICONS.settings},
+  ];
+}
+
+function renderRail(){
+  const rail = document.getElementById('rail');
+  const initials = (S.user.name||'?').trim().split(/\s+/).slice(-1)[0]?.[0]?.toUpperCase() || '?';
+  rail.innerHTML = `
+    <div class="brand">
+      <div class="brand-mark">SH</div>
+      <div class="brand-text">
+        <div class="t1">${t('appName')}</div>
+        <div class="t2">${t('appTag')}</div>
+      </div>
+    </div>
+    <div class="nav-group">
+      ${navItems().map(n=>`
+        <div class="nav-item ${S.view===n.id?'active':''}" data-nav="${n.id}">${n.icon}<span>${t(n.key)}</span></div>
+      `).join('')}
+    </div>
+    <div class="rail-spacer"></div>
+    <div class="sync-box">
+      <div class="sync-pill">
+        <span class="sync-dot ${S.syncing?'syncing':''}"></span>
+        <span class="sync-time-text">${S.syncing?t('syncing'):(S.lastSyncTime?t('last_sync')+' '+fmtTime(S.lastSyncTime):t('never_sync'))}</span>
+      </div>
+      <button class="btn-sync-manual" id="btnSyncRail">${ICONS.save} ${t('sync_manual')}</button>
+    </div>
+    <div class="user-card" data-nav="settings">
+      <div class="user-avatar">${initials}</div>
+      <div class="user-meta">
+        <div class="name">${escapeHtml(S.user.name || t('your_name'))}</div>
+        <div class="role">${isManagerTierRole(S.user.role)?t('role_manager'):t('role_field')}</div>
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="btnLogoutRail" style="width:100%;justify-content:center;margin-top:8px;">${t('logout')}</button>
+  `;
+  rail.querySelectorAll('[data-nav]').forEach(el=>el.addEventListener('click', ()=>{ S.view = el.dataset.nav; render(); }));
+  const btnSync = rail.querySelector('#btnSyncRail');
+  if(btnSync) btnSync.addEventListener('click', manualSyncSave);
+  const btnLogoutRail = rail.querySelector('#btnLogoutRail');
+  if(btnLogoutRail) btnLogoutRail.addEventListener('click', doLogout);
+}
+
+function renderBottomNav(){
+  const el = document.getElementById('bottomNav');
+  el.innerHTML = navItems().map(n=>`
+    <div class="bn-item ${S.view===n.id?'active':''}" data-nav="${n.id}">${n.icon}<span>${t(n.key)}</span></div>
+  `).join('') + `<div class="bn-item" id="btnSyncMobile" style="color:var(--accent);">${ICONS.save}<span>Lưu</span></div>`;
+  el.querySelectorAll('[data-nav]').forEach(x=>x.addEventListener('click', ()=>{ S.view = x.dataset.nav; render(); }));
+  const btnMobile = el.querySelector('#btnSyncMobile');
+  if(btnMobile) btnMobile.addEventListener('click', manualSyncSave);
+}
+
+function renderTopbar(){
+  const el = document.getElementById('topbar');
+  const titles = {
+    dashboard:{key:'nav_dashboard'}, project:{key:'nav_project'}, report:{key:'nav_report'}, settings:{key:'nav_settings'}
+  };
+  const proj = S.projects.find(p=>p.id===S.currentProjectId);
+  let sub = '';
+  if(S.view==='project' && proj) sub = proj.name + (proj.leader ? ` — [Trưởng CT: ${proj.leader}]` : '');
+  el.innerHTML = `
+    <div>
+      <h1>${t(titles[S.view].key)}</h1>
+      ${sub?`<div class="sub">${escapeHtml(sub)}</div>`:''}
+    </div>
+    <div class="topbar-spacer"></div>
+    <div class="lang-toggle">
+      <button data-lang="vi" class="${LANG==='vi'?'active':''}">VI</button>
+      <button data-lang="en" class="${LANG==='en'?'active':''}">EN</button>
+    </div>
+  `;
+  el.querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click', ()=>{
+    LANG = b.dataset.lang; saveUser(); render();
+  }));
+}
+
+function renderContent(){
+  const el = document.getElementById('content');
+  if(S.view==='dashboard') el.innerHTML = viewDashboard();
+  else if(S.view==='project') el.innerHTML = viewProject();
+  else if(S.view==='report') el.innerHTML = viewReport();
+  else if(S.view==='settings') el.innerHTML = viewSettings();
+  bindContentEvents();
+}
+
+/* ================= VIEW: DASHBOARD ================= */
+function ringSVG(pct, size){
+  size = size||52;
+  const r = (size-8)/2, c = 2*Math.PI*r;
+  const off = c - (pct/100)*c;
+  const cls = pct>=100?'ring-fill done':'ring-fill';
+  return `<svg class="ring" viewBox="0 0 ${size} ${size}">
+    <circle class="ring-track" cx="${size/2}" cy="${size/2}" r="${r}"></circle>
+    <circle class="${cls}" cx="${size/2}" cy="${size/2}" r="${r}" stroke-dasharray="${c}" stroke-dashoffset="${off}"></circle>
+    <text x="50%" y="53%" text-anchor="middle" class="ring-label">${pct}%</text>
+  </svg>`;
+}
+
+function viewDashboard(){
+  let html = `<div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+      <button class="btn btn-primary" id="btnNewProject">${t('new_project')}</button>
+    </div>`;
+  if(S.projects.length===0){
+    html += `<div class="empty">${ICONS.empty}<div class="e-title">${t('no_projects_title')}</div><div>${t('no_projects_sub')}</div></div>`;
+    return html;
+  }
+  html += `<div class="proj-grid">`;
+  S.projects.slice().sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||'')).forEach(p=>{
+    const pr = projectProgress(p);
+    html += `<div class="proj-card" data-open-project="${p.id}">
+      <div class="top">
+        <div>
+          <div class="pname">${escapeHtml(p.name)}</div>
+          <div class="ploc">${escapeHtml(p.location||'')} · ${fmtDate(p.date)}</div>
+          ${p.leader ? `<div class="hint" style="color:var(--accent);">👤 Phụ trách: <b>${escapeHtml(p.leader)}</b></div>` : ''}
+        </div>
+        ${ringSVG(pr.pct)}
+      </div>
+      <div class="chip-row">
+        ${p.workTypes.map(wt=>`<span class="chip">${t('wt_'+wt)}</span>`).join('')}
+      </div>
+      <div class="stripe-line"><div class="fill ${pr.pct>=100?'done':''}" style="width:${pr.pct}%"></div></div>
+      <div class="chip-row">
+        ${pr.missing.length===0
+          ? `<span class="chip" style="color:var(--success);border-color:#1c5a41;">${t('none_missing')}</span>`
+          : pr.missing.slice(0,3).map(m=>`<span class="chip miss">${escapeHtml(m)}</span>`).join('') + (pr.missing.length>3?`<span class="chip">+${pr.missing.length-3}</span>`:'')
+        }
+      </div>
+    </div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+/* ================= VIEW: PROJECT ================= */
+function viewProject(){
+  if(!S.currentProjectId){
+    if(S.projects.length){
+      return `<div class="empty">${ICONS.empty}<div class="e-title">${t('open_project')}</div>
+        <div class="proj-grid" style="margin-top:20px;text-align:left;">
+        ${S.projects.map(p=>`<div class="proj-card" data-open-project="${p.id}"><div class="pname">${escapeHtml(p.name)}</div><div class="ploc">${escapeHtml(p.location||'')}</div></div>`).join('')}
+        </div></div>`;
+    }
+    return `<div class="empty">${ICONS.empty}<div class="e-title">${t('no_projects_title')}</div></div>`;
+  }
+  const project = S.projects.find(p=>p.id===S.currentProjectId);
+  if(!project){ S.currentProjectId=null; return viewProject(); }
+  
+  if(!S.checklists[project.id]) loadChecklist(project.id);
+  const cl = S.checklists[project.id];
+  if(!cl) return `<div class="hint">…</div>`;
+  const pr = projectProgress(project);
+
+  let html = `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div class="card-title">${escapeHtml(project.name)}</div>
+        <div class="hint">${escapeHtml(project.location||'')} · ${fmtDate(project.date)}</div>
+        ${project.leader ? `<div class="hint" style="color:var(--accent);margin-top:4px;">👤 Người đứng công trình: <b>${escapeHtml(project.leader)}</b></div>` : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        ${ringSVG(pr.pct,58)}
+        <div>
+          <div style="font-family:var(--font-mono);font-size:13px;">${pr.done}/${pr.total} ${t('progress').toLowerCase()}</div>
+          <div class="hint">${pr.missing.length? pr.missing.length+' '+t('missing_items').toLowerCase() : t('none_missing')}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  (project.groupIds || []).forEach(gid=>{
+    html += renderGroupCard(project, gid);
+  });
+
+  html += `<button class="btn btn-ghost" id="btnAddGroup" style="width:100%;justify-content:center;padding:12px;">${t('add_group')}</button>`;
+  return html;
+}
+
+function renderGroupCard(project, gid){
+  const g = groupById(gid);
+  if(!g) return '';
+  const p = groupProgress(project, gid);
+  const isOpen = S.openGroups[gid] !== undefined ? S.openGroups[gid] : true; // Default open for enhanced visibility
+  let badge = 'pending';
+  if(g.type==='simple'){ badge = p.done>=p.total && p.total>0 ? 'ok' : 'pending'; }
+  else { badge = p.na ? 'na' : (p.count>0 ? 'ok' : 'pending'); }
+  const badgeText = badge==='ok'?t('status_complete'):(badge==='na'?t('status_na'):t('status_partial'));
+
+  const assignedPerson = (project.assignments && project.assignments[gid]) ? project.assignments[gid] : '';
+
+  let inner = '';
+  if(g.type==='simple'){
+    inner = renderSimpleGroupBody(project, gid, g);
+  } else {
+    inner = renderEntriesGroupBody(project, gid, g);
+  }
+
+  return `<div class="card" data-group-card="${gid}">
+    <div class="group-header" data-toggle-group="${gid}">
+      <div>
+        <div class="group-eyebrow">${String((project.groupIds || []).indexOf(gid)+1).padStart(2,'0')}</div>
+        <div class="group-name">${tf(g.name)} <span class="group-badge ${badge}">${badgeText}</span></div>
+        ${assignedPerson ? `<div style="font-size:11px;color:var(--accent);margin-top:2px;">👷 Phụ trách: <b>${escapeHtml(assignedPerson)}</b></div>` : ''}
+      </div>
+      <div class="group-count">${g.type==='simple' ? p.done+'/'+p.total : (p.na? t('status_na') : (p.count||0)+' '+t('entries_count'))}</div>
+      <i data-lucide="chevron-down" class="chevron ${isOpen?'open':''}"></i>
+    </div>
+    <div class="group-body ${isOpen?'open':''}">
+      <div class="group-body-in">
+        ${inner}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px dashed var(--border-soft);">
+          ${g.type==='simple' ? `<button class="btn btn-sm btn-ghost" data-add-subtask="${gid}">${ICONS.plus} ${t('add_subtask')}</button>` : '<div></div>'}
+          <button class="btn btn-sm btn-danger" data-del-group="${gid}">
+            ${ICONS.trash} ${t('delete_group')}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderSimpleGroupBody(project, gid, g){
+  const cl = S.checklists[project.id];
+  const gs = cl.groups[gid];
+  const allItems = getGroupItems(project, gid);
+  
+  const allChecked = allItems.length > 0 && allItems.every((_, idx) => gs.items[idx] && gs.items[idx].checked);
+
+  let checkAllBar = `<div class="check-all-bar">
+    <label class="check-all-label">
+      <input type="checkbox" data-check-all="${gid}" ${allChecked ? 'checked' : ''} style="width:17px;height:17px;accent-color:var(--accent);cursor:pointer;">
+      <span>${allChecked ? t('uncheck_all') : t('check_all')}</span>
+    </label>
+  </div>`;
+
+  let tolHtml = '';
+  if(g.hasTolerance){
+    const measured = parseFloat(gs.tolerance.measured);
+    const allowed = parseFloat(gs.tolerance.allowed);
+    let flag = '';
+    if(!isNaN(measured) && !isNaN(allowed)){
+      flag = measured>allowed
+        ? `<div class="tol-flag bad">${t('exceed_tolerance')}</div>`
+        : `<div class="tol-flag good">${t('within_tolerance')}</div>`;
+    }
+    tolHtml = `<div class="tol-box">
+      <div class="field" style="margin-bottom:0;"><label>${t('measured_error')}</label><input type="number" step="any" data-tol="measured" data-gid="${gid}" value="${gs.tolerance.measured}"></div>
+      <div class="field" style="margin-bottom:0;"><label>${t('allowed_error')}</label><input type="number" step="any" data-tol="allowed" data-gid="${gid}" value="${gs.tolerance.allowed}"></div>
+      ${flag}
+    </div>`;
+  }
+
+  const items = allItems.map((item, idx)=>{
+    const rec = gs.items[idx] || {};
+    const checked = !!rec.checked;
+    const needsPhoto = g.photoRequiredIdx===idx;
+    const hasPhoto = !!rec.photo;
+    const locked = needsPhoto && !hasPhoto;
+    return `<div class="check-item ${checked?'checked':''}" data-item-row="${gid}:${idx}">
+      <div class="check-box ${checked?'checked':''} ${locked?'locked':''}" data-check="${gid}:${idx}">${ICONS.check}</div>
+      <div style="flex:1;">
+        <div class="check-label">${escapeHtml(item.title)} ${needsPhoto?`<span class="photo-req">${t('required')}: ${t('attach_photo').replace('📷 ','')}</span>`:''}</div>
+        <div class="check-meta">${t('updated_by')} <span class="uppercase font-medium text-slate-300">${escapeHtml(rec.updatedBy || S.user.name)}</span> · ${fmtDateTime(rec.updatedAt || nowISO())}</div>
+        ${rec.note!==undefined && rec.note!==''? `<div class="check-meta" style="color:var(--accent);">${escapeHtml(rec.note)}</div>`:''}
+        ${rec.photo? `<img class="photo-preview" src="${rec.photo}" style="margin-top:6px;">`:''}
+        
+        <div class="mini-actions">
+          <button class="mini-btn" data-note-toggle="${gid}:${idx}">${ICONS.plus} ${t('note')}</button>
+          <button class="mini-btn ${hasPhoto?'active':''}" data-photo-trigger="${gid}:${idx}">${hasPhoto?t('photo_attached'):t('attach_photo')}</button>
+          <input type="file" accept="image/*" capture="environment" style="display:none" data-photo-input="${gid}:${idx}">
+          <button class="mini-btn mini-btn-danger" data-delete-subtask="${gid}:${idx}">${ICONS.trash} ${t('delete')}</button>
+        </div>
+        <div class="note-editor" data-note-editor="${gid}:${idx}" style="display:none;">
+          <textarea class="note-input" data-note-field="${gid}:${idx}" placeholder="${t('note')}">${rec.note||''}</textarea>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return checkAllBar + tolHtml + `<div class="check-list">${items}</div>`;
+}
+
+function renderEntriesGroupBody(project, gid, g){
+  const cl = S.checklists[project.id];
+  const gs = cl.groups[gid];
+  let html = `<div class="na-toggle">
+    <span>${t('not_present')}</span>
+    <div class="switch ${gs.na?'on':''}" data-toggle-na="${gid}"></div>
+  </div>`;
+  if(gs.na) return html;
+
+  if(gs.entries.length){
+    html += gs.entries.map(entry=>{
+      const label = entry.fields.code || entry.fields.ptype || entry.fields.type || '';
+      return `<div class="entry-card">
+        <div class="ehead">
+          <div class="etitle">#${escapeHtml(label||'—')}</div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-sm btn-ghost" data-edit-entry="${gid}:${entry.id}">${t('edit')}</button>
+            <button class="btn btn-sm btn-danger" data-del-entry="${gid}:${entry.id}">${t('delete')}</button>
+          </div>
+        </div>
+        ${g.fields.map(f=>{
+          const v = entry.fields[f.id];
+          if(v===undefined || v==='' || v===false) return '';
+          const disp = f.type==='select' ? tf((f.options.find(o=>o.vi===v||o.en===v))||{vi:v,en:v}) : (f.type==='checkbox'? t('yes') : escapeHtml(String(v)));
+          return `<div class="check-meta" style="font-size:12px;margin-bottom:2px;"><b>${tf(f.label)}:</b> ${disp}</div>`;
+        }).join('')}
+        ${entry.note? `<div class="check-meta">${t('note')}: ${escapeHtml(entry.note)}</div>`:''}
+        ${entry.photo? `<img class="entry-thumb" src="${entry.photo}">`:''}
+        <div class="check-meta" style="margin-top:6px;">${t('updated_by')} ${escapeHtml(entry.updatedBy||'—')} · ${fmtDateTime(entry.updatedAt)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  if(S.entryFormOpenFor===gid){
+    html += renderEntryForm(project, gid, g);
+  } else {
+    html += `<button class="btn btn-primary btn-sm" data-open-entry-form="${gid}">${t('add_entry')}</button>`;
+  }
+  return html;
+}
+
+function renderEntryForm(project, gid, g){
+  const editing = S.entryEditing && S.entryEditing.gid===gid ? S.entryEditing : null;
+  const cl = S.checklists[project.id];
+  const gs = cl.groups[gid];
+  const entry = editing ? gs.entries.find(e=>e.id===editing.eid) : null;
+  const vals = entry ? entry.fields : {};
+  const fieldsHtml = g.fields.map(f=>{
+    const val = vals[f.id]!==undefined?vals[f.id]:'';
+    if(f.type==='select'){
+      return `<div class="field"><label>${tf(f.label)}</label>
+        <select data-ef="${f.id}">
+          <option value="">—</option>
+          ${f.options.map(o=>`<option value="${tf(o)}" ${tf(o)===val?'selected':''}>${tf(o)}</option>`).join('')}
+        </select></div>`;
+    }
+    if(f.type==='checkbox'){
+      return `<div class="field" style="display:flex;align-items:center;gap:8px;"><input type="checkbox" data-ef="${f.id}" ${val?'checked':''}> <label style="margin:0;">${tf(f.label)}</label></div>`;
+    }
+    return `<div class="field"><label>${tf(f.label)}</label><input type="${f.type}" step="any" data-ef="${f.id}" value="${escapeAttr(val)}"></div>`;
+  }).join('');
+  const photoVal = entry && entry.photo ? entry.photo : '';
+  return `<div class="entry-form" data-entry-form="${gid}">
+    <div class="field-row">${fieldsHtml}</div>
+    <div class="field"><label>${t('note')}</label><textarea data-ef="note">${entry&&entry.note?escapeHtml(entry.note):''}</textarea></div>
+    <div class="photo-input-wrap">
+      <button type="button" class="btn btn-sm btn-ghost" data-entry-photo-trigger="${gid}">${t('attach_photo')}</button>
+      <input type="file" accept="image/*" capture="environment" style="display:none" data-entry-photo-input="${gid}">
+      <img id="entryPhotoPreview" class="photo-preview" src="${photoVal}" style="${photoVal?'':'display:none;'}">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-cancel-entry-form="${gid}">${t('cancel')}</button>
+      <button class="btn btn-primary" data-save-entry="${gid}">${t('save_entry')}</button>
+    </div>
+  </div>`;
+}
+
+/* ================= VIEW: REPORT ================= */
+function viewReport(){
+  const proj = S.projects.find(p=>p.id===S.reportProjectId) || S.projects.find(p=>p.id===S.currentProjectId) || S.projects[0];
+  if(proj && !S.reportProjectId) S.reportProjectId = proj.id;
+  let html = `<div class="report-toolbar no-print">
+    <select id="reportProjectSelect" class="btn" style="padding:9px 12px;">
+      <option value="">${t('select_project_for_report')}</option>
+      ${S.projects.map(p=>`<option value="${p.id}" ${p.id===S.reportProjectId?'selected':''}>${escapeHtml(p.name)}</option>`).join('')}
+    </select>
+    <input type="date" id="reportDateInput" class="btn" style="padding:9px 12px;" value="${S.reportDate}">
+    <button class="btn btn-primary" id="btnExportPdf">${t('export_pdf')}</button>
+    <button class="btn btn-ghost" id="btnCopySummary">${t('copy_summary')}</button>
+  </div>`;
+
+  if(!S.reportProjectId){
+    html += `<div class="empty">${ICONS.empty}<div class="e-title">${t('no_report_data')}</div></div>`;
+    return html;
+  }
+  const project = S.projects.find(p=>p.id===S.reportProjectId);
+  if(!S.checklists[project.id]) loadChecklist(project.id);
+  const cl = S.checklists[project.id];
+  if(!cl){ return html + `<div class="hint">…</div>`; }
+  const pr = projectProgress(project);
+  if(!S.activity[project.id]) loadActivity(project.id);
+  const activity = (S.activity[project.id]||[]).filter(a=> a.ts.slice(0,10)===S.reportDate);
+
+  html += `<div id="report-print"><div class="report-sheet">
+    <div class="rp-head">
+      <div>
+        <div class="co">SurveyHub</div>
+        <div class="sub">${LANG==='vi'?'Hệ thống quản lý quy trình khảo sát':'Survey Operations Management System'}</div>
+      </div>
+      <div class="meta">
+        <div>${t('report_date')}: <b>${fmtDate(S.reportDate)}</b></div>
+        <div>${t('report_generated')}: ${fmtDateTime(new Date().toISOString())}</div>
+      </div>
+    </div>
+    <div class="rp-title">${t('report_title')}</div>
+    <table class="rp-table">
+      <tr><th style="width:160px;">${t('report_project')}</th><td>${escapeHtml(project.name)}</td></tr>
+      <tr><th>${t('report_location')}</th><td>${escapeHtml(project.location||'—')}</td></tr>
+      <tr><th>Người đứng công trình</th><td><b>${escapeHtml(project.leader||'—')}</b></td></tr>
+      <tr><th>${t('work_types')}</th><td>${project.workTypes.map(w=>t('wt_'+w)).join(', ')}</td></tr>
+      <tr><th>${t('report_completion')}</th><td>${pr.done}/${pr.total} (${pr.pct}%)<div class="rp-bar-track" style="margin-top:5px;"><div class="rp-bar-fill" style="width:${pr.pct}%;"></div></div></td></tr>
+    </table>
+    <table class="rp-table">
+      <thead><tr><th>${t('report_group')}</th><th style="width:140px;">Phụ trách</th><th style="width:110px;">${t('report_status')}</th><th style="width:110px;">${t('report_completion')}</th></tr></thead>
+      <tbody>
+        ${(project.groupIds || []).map(gid=>{
+          const g = groupById(gid); const p = groupProgress(project, gid);
+          if(!g) return '';
+          const assignee = (project.assignments && project.assignments[gid]) ? project.assignments[gid] : '—';
+          let status, comp;
+          if(g.type==='simple'){ status = p.done>=p.total? t('status_complete'):t('status_partial'); comp = p.done+'/'+p.total; }
+          else { status = p.na? t('status_na') : (p.count>0? t('status_complete'):t('status_partial')); comp = p.na? '—' : (p.count||0)+' '+t('entries_count'); }
+          return `<tr><td>${tf(g.name)}</td><td>${escapeHtml(assignee)}</td><td>${status}</td><td>${comp}</td></tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div style="font-weight:700;margin-bottom:6px;color:#14213d;">${t('report_missing_list')}</div>
+    ${pr.missing.length? `<ul class="rp-missing">${pr.missing.map(m=>`<li>${escapeHtml(m)}</li>`).join('')}</ul>` : `<div style="color:#2f8f5b;margin-bottom:14px;">${t('none_missing')}</div>`}
+    <div style="font-weight:700;margin:16px 0 6px;color:#14213d;">${t('report_activity')}</div>
+    ${activity.length? `<table class="rp-table"><thead><tr><th style="width:90px;">${LANG==='vi'?'Giờ':'Time'}</th><th style="width:120px;">${LANG==='vi'?'Người dùng':'User'}</th><th>${LANG==='vi'?'Hoạt động':'Action'}</th></tr></thead><tbody>
+      ${activity.map(a=>`<tr><td>${new Date(a.ts).toLocaleTimeString(LANG==='vi'?'vi-VN':'en-US',{hour:'2-digit',minute:'2-digit'})}</td><td>${escapeHtml(a.user)}</td><td>${escapeHtml(a.detail||a.action)}</td></tr>`).join('')}
+    </tbody></table>` : `<div style="color:#777;">${t('report_no_activity')}</div>`}
+    <div class="rp-sig">
+      <div><div class="role">${t('sig_engineer')}</div><div class="line">${escapeHtml(S.user.name||'')}</div></div>
+      <div><div class="role">${t('sig_checker')}</div><div class="line">&nbsp;</div></div>
+      <div><div class="role">${t('sig_manager')}</div><div class="line">&nbsp;</div></div>
+    </div>
+  </div></div>`;
+  return html;
+}
+
+/* ================= VIEW: SETTINGS ================= */
+function viewSettings(){
+  return `<div class="card" style="max-width:520px;">
+    <div class="card-title" style="margin-bottom:6px;">${t('account')}</div>
+    <div class="hint" style="margin-bottom:14px;">${escapeHtml(S.user.email||'')}</div>
+    <button class="btn btn-ghost" id="btnLogoutSettings">${t('logout')}</button>
+  </div>
+
+  <div class="card" style="max-width:520px;">
+    <div class="card-title" style="margin-bottom:14px;">${t('settings_title')}</div>
+    <div class="field"><label>${t('your_name')}</label><input type="text" id="settingsName" value="${escapeAttr(S.user.name)}"></div>
+    <div class="field"><label>${t('your_role')}</label>
+      <select id="settingsRole">
+        <option value="field" ${S.user.role==='field'?'selected':''}>${t('role_field')}</option>
+        <option value="manager" ${isManagerTierRole(S.user.role)?'selected':''}>${t('role_manager')}</option>
+      </select>
+    </div>
+    <div class="field"><label>${t('language')}</label>
+      <select id="settingsLang">
+        <option value="vi" ${LANG==='vi'?'selected':''}>Tiếng Việt</option>
+        <option value="en" ${LANG==='en'?'selected':''}>English</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" id="btnSaveSettings">${t('save')}</button>
+  </div>
+
+  <div class="card" style="max-width:520px;">
+    <div class="card-title" style="margin-bottom:6px;">${t('backup_restore')}</div>
+    <div class="hint" style="margin-bottom:14px;">Lưu file dự án vào máy tính của bạn (ổ D, Google Drive, OneDrive) hoặc mở file đã lưu khi có mạng.</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-primary" id="btnExportPC">${t('export_file')}</button>
+      <button class="btn btn-ghost" id="btnImportPC">${t('import_file')}</button>
+      <input type="file" id="fileImportPC" accept=".json" style="display:none;">
+    </div>
+  </div>
+
+  ${S.currentProjectId ? `<div class="card" style="max-width:520px;border-color:#5c2233;">
+    <div class="card-title" style="color:#ffb3c1;">${t('danger_zone')}</div>
+    <div class="hint" style="margin-bottom:10px;">${escapeHtml((S.projects.find(p=>p.id===S.currentProjectId)||{}).name||'')}</div>
+    <button class="btn btn-danger" id="btnDeleteProject">${t('delete_project')}</button>
+  </div>` : ''}`;
+}
+
+/* ================= Modals ================= */
+function openNewProjectModal(){
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `<div class="overlay" id="ovNewProject">
+    <div class="modal">
+      <h2>${t('create_project')}</h2>
+      <div class="field"><label>${t('project_name')}</label><input type="text" id="npName" placeholder="VD: Khảo sát đường kết nối UM2 - NR7"></div>
+      <div class="field-row">
+        <div class="field"><label>${t('project_location')}</label><input type="text" id="npLoc"></div>
+        <div class="field"><label>${t('project_date')}</label><input type="date" id="npDate" value="${new Date().toISOString().slice(0,10)}"></div>
+      </div>
+      <div class="field">
+        <label>${t('project_leader')}</label>
+        <input type="text" id="npLeader" placeholder="Nhập tên người chỉ huy / trưởng nhóm" value="${escapeAttr(S.user.name)}">
+      </div>
+      <div class="field">
+        <label>${t('work_types')} (Chọn nhiều mục):</label>
+        <div class="check-grid" id="npWorkTypes">
+          ${WORK_TYPES.map(wt=>`<label class="wt-opt" data-wt="${wt.id}"><input type="checkbox" value="${wt.id}">${t(wt.key)}</label>`).join('')}
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:16px;">
+        <label style="font-weight:700;color:var(--accent);">${t('assign_checklist')}:</label>
+        <div id="npAssignmentsContainer" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="npCancel">${t('cancel')}</button>
+        <button class="btn btn-primary" id="npCreate">${t('create_project')}</button>
+      </div>
+    </div>
+  </div>`;
+
+  const renderAssignmentInputs = () => {
+    const selectedWts = Array.from(root.querySelectorAll('#npWorkTypes input:checked')).map(i=>i.value);
+    const gids = autoGroupsForWorkTypes(selectedWts);
+    const container = root.querySelector('#npAssignmentsContainer');
+    if(!gids.length){
+      container.innerHTML = `<div class="hint">Chọn loại công việc ở trên để phân công nhân sự.</div>`;
+      return;
+    }
+    container.innerHTML = gids.map(gid=>{
+      const g = groupById(gid);
+      if(!g) return '';
+      return `<div style="display:flex;align-items:center;gap:10px;background:var(--bg-panel-alt);padding:6px 10px;border-radius:8px;">
+        <span style="font-size:12px;font-weight:600;flex:1;">${tf(g.name)}</span>
+        <input type="text" data-assign-gid="${gid}" placeholder="Tên người làm" value="${escapeAttr(S.user.name)}" style="width:160px;padding:5px 8px;font-size:12px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);">
+      </div>`;
+    }).join('');
+  };
+
+  root.querySelectorAll('#npWorkTypes input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const lbl = cb.closest('.wt-opt');
+      if(lbl) lbl.classList.toggle('on', cb.checked);
+      renderAssignmentInputs();
+    });
+  });
+
+  renderAssignmentInputs();
+
+  document.getElementById('npCancel').addEventListener('click', closeModal);
+  document.getElementById('ovNewProject').addEventListener('click', (e)=>{ if(e.target.id==='ovNewProject') closeModal(); });
+  document.getElementById('npCreate').addEventListener('click', ()=>{
+    const name = document.getElementById('npName').value.trim();
+    if(!name){ toast(LANG==='vi'?'Vui lòng nhập tên dự án':'Please enter a project name'); return; }
+    const loc = document.getElementById('npLoc').value.trim();
+    const date = document.getElementById('npDate').value;
+    const leader = document.getElementById('npLeader').value.trim();
+    const wts = Array.from(document.querySelectorAll('#npWorkTypes input:checked')).map(i=>i.value);
+    const groupIds = autoGroupsForWorkTypes(wts);
+
+    const assignments = {};
+    root.querySelectorAll('[data-assign-gid]').forEach(inp=>{
+      assignments[inp.dataset.assignGid] = inp.value.trim();
+    });
+
+    const project = {
+      id:newId(), name, location:loc, date, leader, workTypes:wts, groupIds, assignments, customItems:{},
+      createdAt:nowISO(), createdBy:S.user.name||''
+    };
+    
+    S.projects.push(project);
+    saveProjects();
+    S.checklists[project.id] = emptyChecklist(project);
+    saveChecklist(project.id);
+    pushActivity(project.id, 'create', LANG==='vi'?'Tạo dự án':'Created project');
+    S.currentProjectId = project.id;
+    S.view='project';
+    closeModal();
+    manualSyncSave();
+    render();
+  });
+}
+
+function openAddSubtaskModal(gid) {
+  const root = document.getElementById('modalRoot');
+  const group = groupById(gid);
+  root.innerHTML = `<div class="overlay" id="ovAddSubtask">
+    <div class="modal" style="max-width:380px;">
+      <h2>${t('add_subtask')} (${tf(group ? group.name : {vi:'',en:''})})</h2>
+      <div class="field">
+        <label>Tên thiết bị / công việc (vd: Sào, Mia...)</label>
+        <input type="text" id="newSubtaskTitle" placeholder="Nhập tên mục mới..." autofocus>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="stCancel">${t('cancel')}</button>
+        <button class="btn btn-primary" id="stAdd">${t('add')}</button>
+      </div>
+    </div>
+  </div>`;
+
+  const inputEl = document.getElementById('newSubtaskTitle');
+  inputEl.focus();
+
+  document.getElementById('stCancel').addEventListener('click', closeModal);
+  document.getElementById('ovAddSubtask').addEventListener('click', (e)=>{ if(e.target.id==='ovAddSubtask') closeModal(); });
+  
+  const handleAdd = () => {
+    const title = inputEl.value.trim();
+    if(!title) return;
+    const project = S.projects.find(p=>p.id===S.currentProjectId);
+    if(project) {
+      if(!project.customItems) project.customItems = {};
+      if(!project.customItems[gid]) project.customItems[gid] = [];
+      
+      const newCustomItem = { id: newId(), title: title };
+      project.customItems[gid].push(newCustomItem);
+      saveProjects();
+
+      // Automatically mark as completed by active user
+      const cl = S.checklists[project.id];
+      const allItems = getGroupItems(project, gid);
+      const newIdx = allItems.length - 1;
+      
+      if(!cl.groups[gid].items) cl.groups[gid].items = {};
+      cl.groups[gid].items[newIdx] = {
+        checked: true,
+        updatedBy: S.user.name || 'VIỆT PHẠM',
+        updatedAt: nowISO(),
+        note: ''
+      };
+      saveChecklist(project.id);
+
+      pushActivity(project.id, 'add_subtask', `Thêm công việc con: ${title}`);
+      manualSyncSave();
+      closeModal();
+      render();
+    }
+  };
+
+  document.getElementById('stAdd').addEventListener('click', handleAdd);
+  inputEl.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') handleAdd(); });
+}
+
+function openConfirmDeleteModal(type, title, onConfirm) {
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `<div class="overlay" id="ovDeleteConfirm">
+    <div class="modal" style="max-width:340px;text-align:center;">
+      <div style="width:48px;height:48px;background:var(--danger-dim);color:var(--danger);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;border:1px solid rgba(255,84,112,0.3);">
+        ${ICONS.trash}
+      </div>
+      <h3 style="margin:0 0 6px;font-size:16px;">Xóa ${escapeHtml(type)}?</h3>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:20px;">Mục "${escapeHtml(title)}" sẽ bị xóa khỏi danh sách. Hành động này không thể hoàn tác.</p>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-ghost" id="btnCancelDel" style="flex:1;justify-content:center;">${t('cancel')}</button>
+        <button class="btn btn-danger" id="btnConfirmDel" style="flex:1;justify-content:center;">${t('delete')}</button>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('btnCancelDel').addEventListener('click', closeModal);
+  document.getElementById('ovDeleteConfirm').addEventListener('click', (e)=>{ if(e.target.id==='ovDeleteConfirm') closeModal(); });
+  document.getElementById('btnConfirmDel').addEventListener('click', () => {
+    onConfirm();
+    closeModal();
+  });
+}
+
+function closeModal(){ document.getElementById('modalRoot').innerHTML=''; }
+
+function openAddGroupModal(project){
+  const root = document.getElementById('modalRoot');
+  const available = GROUPS.filter(g=>!(project.groupIds || []).includes(g.id));
+  root.innerHTML = `<div class="overlay" id="ovAddGroup">
+    <div class="modal">
+      <h2>${t('select_group')}</h2>
+      <div style="display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow:auto;">
+        ${available.map(g=>`<label class="wt-opt" data-g="${g.id}" style="width:100%;justify-content:space-between;"><span>${tf(g.name)}</span><input type="radio" name="addg" value="${g.id}"></label>`).join('') || `<div class="hint">—</div>`}
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label>Người làm / Phụ trách hạng mục này:</label>
+        <input type="text" id="agAssignee" placeholder="Tên nhân sự" value="${escapeAttr(S.user.name)}">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="agCancel">${t('cancel')}</button>
+        <button class="btn btn-primary" id="agAdd">${t('add')}</button>
+      </div>
+    </div>
+  </div>`;
+  root.querySelectorAll('.wt-opt').forEach(lbl=>lbl.addEventListener('click',()=>{
+    root.querySelectorAll('.wt-opt').forEach(x=>x.classList.remove('on'));
+    lbl.classList.add('on');
+    lbl.querySelector('input').checked = true;
+  }));
+  document.getElementById('agCancel').addEventListener('click', closeModal);
+  document.getElementById('ovAddGroup').addEventListener('click',(e)=>{ if(e.target.id==='ovAddGroup') closeModal(); });
+  document.getElementById('agAdd').addEventListener('click', ()=>{
+    const sel = root.querySelector('input[name=addg]:checked');
+    if(!sel) { closeModal(); return; }
+    const gid = sel.value;
+    const assignee = document.getElementById('agAssignee').value.trim();
+
+    if(!project.groupIds) project.groupIds = [];
+    project.groupIds.push(gid);
+    if(!project.assignments) project.assignments = {};
+    if(assignee) project.assignments[gid] = assignee;
+
+    saveProjects();
+    const g = groupById(gid);
+    const cl = S.checklists[project.id];
+    cl.groups[gid] = g.type==='simple' ? {items:{}, tolerance:g.hasTolerance?{measured:'',allowed:''}:null} : {na:false, entries:[]};
+    saveChecklist(project.id);
+    closeModal(); 
+    manualSyncSave();
+    render();
+  });
+}
+
+/* ================= Event binding ================= */
+function bindContentEvents(){
+  const content = document.getElementById('content');
+
+  content.querySelectorAll('[data-open-project]').forEach(el=>el.addEventListener('click', ()=>{
+    S.currentProjectId = el.dataset.openProject; S.view='project'; render();
+  }));
+
+  const btnNew = document.getElementById('btnNewProject');
+  if(btnNew) btnNew.addEventListener('click', openNewProjectModal);
+
+  const btnAddGroup = document.getElementById('btnAddGroup');
+  if(btnAddGroup) btnAddGroup.addEventListener('click', ()=>{
+    const project = S.projects.find(p=>p.id===S.currentProjectId);
+    if(project) openAddGroupModal(project);
+  });
+
+  content.querySelectorAll('[data-add-subtask]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openAddSubtaskModal(btn.dataset.addSubtask);
+    });
+  });
+
+  content.querySelectorAll('[data-toggle-group]').forEach(el=>el.addEventListener('click', (e)=>{
+    if(e.target.closest('[data-del-group]') || e.target.closest('[data-add-subtask]')) return;
+    const gid = el.dataset.toggleGroup;
+    S.openGroups[gid] = S.openGroups[gid] !== undefined ? !S.openGroups[gid] : false;
+    render();
+  }));
+
+  // Direct Delete Group Button
+  content.querySelectorAll('[data-del-group]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const gid = btn.dataset.delGroup;
+      const g = groupById(gid);
+      openConfirmDeleteModal('nhóm công việc', g ? tf(g.name) : gid, () => {
+        const project = S.projects.find(p => p.id === S.currentProjectId);
+        if (project) {
+          project.groupIds = (project.groupIds || []).filter(id => id !== gid);
+          if (project.assignments) delete project.assignments[gid];
+          if (project.customItems) delete project.customItems[gid];
+          saveProjects();
+          const cl = S.checklists[project.id];
+          if (cl && cl.groups) delete cl.groups[gid];
+          saveChecklist(project.id);
+          pushActivity(project.id, 'delete_group', 'Xóa nhóm công việc: ' + (g ? tf(g.name) : gid));
+          manualSyncSave();
+          render();
+        }
+      });
+    });
+  });
+
+  // Delete Subtask Button
+  content.querySelectorAll('[data-delete-subtask]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const [gid, idxStr] = btn.dataset.deleteSubtask.split(':');
+      const idx = parseInt(idxStr, 10);
+      const project = S.projects.find(p => p.id === S.currentProjectId);
+      if(!project) return;
+
+      const allItems = getGroupItems(project, gid);
+      const targetItem = allItems[idx];
+      if(!targetItem) return;
+
+      openConfirmDeleteModal('công việc con', targetItem.title, () => {
+        const g = groupById(gid);
+        const staticCount = g && g.items ? g.items.length : 0;
+
+        if (idx < staticCount) {
+          // It's a static template item: hide/mark as deleted in checklist state
+          const cl = S.checklists[project.id];
+          if(cl && cl.groups[gid]) {
+            if(!cl.groups[gid].items[idx]) cl.groups[gid].items[idx] = {};
+            cl.groups[gid].items[idx].deleted = true;
+          }
+        } else {
+          // Custom item: remove from project.customItems
+          const customIdx = idx - staticCount;
+          if(project.customItems && project.customItems[gid]) {
+            project.customItems[gid].splice(customIdx, 1);
+            saveProjects();
+          }
+        }
+
+        saveChecklist(project.id);
+        pushActivity(project.id, 'delete_subtask', `Xóa mục: ${targetItem.title}`);
+        manualSyncSave();
+        render();
+      });
+    });
+  });
+
+  // Check All / Uncheck All Event
+  content.querySelectorAll('[data-check-all]').forEach(cb => {
+    cb.addEventListener('change', (e) => {
+      const gid = cb.dataset.checkAll;
+      const project = S.projects.find(p => p.id === S.currentProjectId);
+      if(!project) return;
+      const cl = S.checklists[project.id];
+      const allItems = getGroupItems(project, gid);
+      const isChecked = cb.checked;
+
+      allItems.forEach((_, idx) => {
+        if(!cl.groups[gid].items[idx]) cl.groups[gid].items[idx] = {};
+        cl.groups[gid].items[idx].checked = isChecked;
+        cl.groups[gid].items[idx].updatedBy = S.user.name || 'VIỆT PHẠM';
+        cl.groups[gid].items[idx].updatedAt = nowISO();
+      });
+
+      saveChecklist(project.id);
+      pushActivity(project.id, 'check_all', `${isChecked ? 'Chọn' : 'Bỏ chọn'} tất cả trong ${gid}`);
+      manualSyncSave();
+      render();
+    });
+  });
+
+  // Individual Checklist Checkbox Toggle
+  content.querySelectorAll('[data-check]').forEach(box => {
+    box.addEventListener('click', () => {
+      const [gid, idxStr] = box.dataset.check.split(':');
+      const idx = parseInt(idxStr, 10);
+      const project = S.projects.find(p => p.id === S.currentProjectId);
+      if(!project) return;
+      const cl = S.checklists[project.id];
+      if(!cl.groups[gid].items[idx]) cl.groups[gid].items[idx] = {};
+      
+      const curr = !!cl.groups[gid].items[idx].checked;
+      cl.groups[gid].items[idx].checked = !curr;
+      cl.groups[gid].items[idx].updatedBy = S.user.name || 'VIỆT PHẠM';
+      cl.groups[gid].items[idx].updatedAt = nowISO();
+
+      saveChecklist(project.id);
+      manualSyncSave();
+      render();
+    });
+  });
+
+  // Tolerance Fields Event
+  content.querySelectorAll('[data-tol]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const type = inp.dataset.tol;
+      const gid = inp.dataset.gid;
+      const project = S.projects.find(p => p.id === S.currentProjectId);
+      if(!project) return;
+      const cl = S.checklists[project.id];
+      if(!cl.groups[gid].tolerance) cl.groups[gid].tolerance = {measured:'', allowed:''};
+      cl.groups[gid].tolerance[type] = inp.value;
+      saveChecklist(project.id);
+    });
+  });
+
+  // Note Toggle Display & Direct Inline Editor
+  content.querySelectorAll('[data-note-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.noteToggle;
+      const editor = content.querySelector(`[data-note-editor="${target}"]`);
+      if(editor) {
+        const isHidden = editor.style.display === 'none';
+        editor.style.display = isHidden ? 'block' : 'none';
+        if(isHidden) {
+          const textarea = editor.querySelector('textarea');
+          if(textarea) textarea.focus();
+        }
+      }
+    });
+  });
+
+  content.querySelectorAll('[data-note-field]').forEach(textarea => {
+    textarea.addEventListener('change', () => {
+      const [gid, idxStr] = textarea.dataset.noteField.split(':');
+      const idx = parseInt(idxStr, 10);
+      const project = S.projects.find(p => p.id === S.currentProjectId);
+      if(!project) return;
+      const cl = S.checklists[project.id];
+      if(!cl.groups[gid].items[idx]) cl.groups[gid].items[idx] = {};
+      cl.groups[gid].items[idx].note = textarea.value.trim();
+      cl.groups[gid].items[idx].updatedBy = S.user.name || 'VIỆT PHẠM';
+      cl.groups[gid].items[idx].updatedAt = nowISO();
+      saveChecklist(project.id);
+      manualSyncSave();
+    });
+  });
+
+  // Image File Upload Handlers for Checklists
+  content.querySelectorAll('[data-photo-trigger]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.photoTrigger;
+      const inp = content.querySelector(`[data-photo-input="${target}"]`);
+      if(inp) inp.click();
+    });
+  });
+
+  content.querySelectorAll('[data-photo-input]').forEach(inp => {
+    inp.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const [gid, idxStr] = inp.dataset.photoInput.split(':');
+      const idx = parseInt(idxStr, 10);
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const project = S.projects.find(p => p.id === S.currentProjectId);
+        if(!project) return;
+        const cl = S.checklists[project.id];
+        if(!cl.groups[gid].items[idx]) cl.groups[gid].items[idx] = {};
+        cl.groups[gid].items[idx].photo = evt.target.result;
+        cl.groups[gid].items[idx].updatedBy = S.user.name || 'VIỆT PHẠM';
+        cl.groups[gid].items[idx].updatedAt = nowISO();
+        saveChecklist(project.id);
+        manualSyncSave();
+        render();
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  // Entry Forms & Custom Subtasks (NA Toggle / Add / Edit / Delete)
+  content.querySelectorAll('[data-toggle-na]').forEach(sw => {
+    sw.addEventListener('click', () => {
+      const gid = sw.dataset.toggleNa;
+      const project = S.projects.find(p => p.id === S.currentProjectId);
+      if(!project) return;
+      const cl = S.checklists[project.id];
+      cl.groups[gid].na = !cl.groups[gid].na;
+      saveChecklist(project.id);
+      manualSyncSave();
+      render();
+    });
+  });
+
+  content.querySelectorAll('[data-open-entry-form]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      S.entryFormOpenFor = btn.dataset.openEntryForm;
+      S.entryEditing = null;
+      render();
+    });
+  });
+
+  content.querySelectorAll('[data-cancel-entry-form]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      S.entryFormOpenFor = null;
+      S.entryEditing = null;
+      render();
+    });
+  });
+
+  content.querySelectorAll('[data-save-entry]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const gid = btn.dataset.saveEntry;
+      const form = content.querySelector(`[data-entry-form="${gid}"]`);
+      if(!form) return;
+      
+      const project = S.projects.find(p => p.id === S.currentProjectId);
+      if(!project) return;
+      const cl = S.checklists[project.id];
+      const g = groupById(gid);
+
+      const fieldsData = {};
+      g.fields.forEach(f => {
+        const el = form.querySelector(`[data-ef="${f.id}"]`);
+        if(el) {
+          fieldsData[f.id] = f.type === 'checkbox' ? el.checked : el.value;
+        }
+      });
+      
+      const noteEl = form.querySelector('[data-ef="note"]');
+      const noteVal = noteEl ? noteEl.value.trim() : '';
+      const previewImg = form.querySelector('#entryPhotoPreview');
+      const photoVal = previewImg && previewImg.style.display !== 'none' ? previewImg.src : '';
+
+      if (S.entryEditing && S.entryEditing.gid === gid) {
+        const idx = cl.groups[gid].entries.findIndex(e => e.id === S.entryEditing.eid);
+        if(idx !== -1) {
+          cl.groups[gid].entries[idx] = {
+            id: S.entryEditing.eid,
+            fields: fieldsData,
+            note: noteVal,
+            photo: photoVal,
+            updatedBy: S.user.name || 'VIỆT PHẠM',
+            updatedAt: nowISO()
+          };
+        }
+      } else {
+        cl.groups[gid].entries.push({
+          id: newId(),
+          fields: fieldsData,
+          note: noteVal,
+          photo: photoVal,
+          updatedBy: S.user.name || 'VIỆT PHẠM',
+          updatedAt: nowISO()
+        });
+      }
+
+      saveChecklist(project.id);
+      S.entryFormOpenFor = null;
+      S.entryEditing = null;
+      manualSyncSave();
+      render();
+    });
+  });
+
+  content.querySelectorAll('[data-edit-entry]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const [gid, eid] = btn.dataset.editEntry.split(':');
+      S.entryEditing = { gid, eid };
+      S.entryFormOpenFor = gid;
+      render();
+    });
+  });
+
+  content.querySelectorAll('[data-del-entry]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const [gid, eid] = btn.dataset.delEntry.split(':');
+      openConfirmDeleteModal('mục đã nhập', eid, () => {
+        const project = S.projects.find(p => p.id === S.currentProjectId);
+        if(!project) return;
+        const cl = S.checklists[project.id];
+        cl.groups[gid].entries = cl.groups[gid].entries.filter(e => e.id !== eid);
+        saveChecklist(project.id);
+        manualSyncSave();
+        render();
+      });
+    });
+  });
+
+  content.querySelectorAll('[data-entry-photo-trigger]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const gid = btn.dataset.entryPhotoTrigger;
+      const inp = content.querySelector(`[data-entry-photo-input="${gid}"]`);
+      if(inp) inp.click();
+    });
+  });
+
+  content.querySelectorAll('[data-entry-photo-input]').forEach(inp => {
+    inp.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const img = content.querySelector('#entryPhotoPreview');
+        if(img) {
+          img.src = evt.target.result;
+          img.style.display = 'block';
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  // Report Actions
+  const rProjSel = document.getElementById('reportProjectSelect');
+  if(rProjSel) {
+    rProjSel.addEventListener('change', () => {
+      S.reportProjectId = rProjSel.value;
+      render();
+    });
+  }
+
+  const rDateInp = document.getElementById('reportDateInput');
+  if(rDateInp) {
+    rDateInp.addEventListener('change', () => {
+      S.reportDate = rDateInp.value;
+      render();
+    });
+  }
+
+  const btnPdf = document.getElementById('btnExportPdf');
+  if(btnPdf) btnPdf.addEventListener('click', () => window.print());
+
+  const btnCopy = document.getElementById('btnCopySummary');
+  if(btnCopy) {
+    btnCopy.addEventListener('click', () => {
+      const project = S.projects.find(p=>p.id===S.reportProjectId);
+      if(!project) return;
+      const pr = projectProgress(project);
+      const text = `📋 [BÁO CÁO KHẢO SÁT HIỆN TRƯỜNG]\n- Dự án: ${project.name}\n- Vị trí: ${project.location||'—'}\n- Ngày: ${fmtDate(S.reportDate)}\n- Tiến độ: ${pr.done}/${pr.total} (${pr.pct}%)\n- Hạng mục chưa hoàn tất: ${pr.missing.length ? pr.missing.join(', ') : 'Hoàn tất'}`;
+      navigator.clipboard.writeText(text).then(() => toast(t('copied')));
+    });
+  }
+
+  // Settings Actions & Export/Import to PC
+  const btnLogoutSettings = document.getElementById('btnLogoutSettings');
+  if(btnLogoutSettings) btnLogoutSettings.addEventListener('click', doLogout);
+
+  const btnSaveSettings = document.getElementById('btnSaveSettings');
+  if(btnSaveSettings) {
+    btnSaveSettings.addEventListener('click', () => {
+      const name = document.getElementById('settingsName').value.trim();
+      const pickedRole = document.getElementById('settingsRole').value;
+      const lang = document.getElementById('settingsLang').value;
+      S.user.name = name;
+      // Giữ nguyên 'superadmin' nếu chỉ chọn lại "Quản lý" — vai trò này dùng chung với app Giao nhận mẫu
+      S.user.role = (S.user.role==='superadmin' && pickedRole==='manager') ? 'superadmin' : pickedRole;
+      LANG = lang;
+      saveUser();
+      toast(t('saved_locally'));
+      render();
+    });
+  }
+
+  const btnExportPC = document.getElementById('btnExportPC');
+  if(btnExportPC) {
+    btnExportPC.addEventListener('click', () => {
+      const data = {
+        version: '2.0',
+        exportedAt: nowISO(),
+        projects: S.projects,
+        checklists: S.checklists,
+        activity: S.activity
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SurveyHub_Backup_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast(t('saved_locally'));
+    });
+  }
+
+  const btnImportPC = document.getElementById('btnImportPC');
+  const fileImportPC = document.getElementById('fileImportPC');
+  if(btnImportPC && fileImportPC) {
+    btnImportPC.addEventListener('click', () => fileImportPC.click());
+    fileImportPC.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if(imported.projects && Array.isArray(imported.projects)) {
+            S.projects = imported.projects;
+            saveProjects();
+            if(imported.checklists) {
+              Object.keys(imported.checklists).forEach(pk => {
+                S.checklists[pk] = imported.checklists[pk];
+                saveChecklist(pk);
+              });
+            }
+            toast(t('saved_locally'));
+            render();
+          } else {
+            alert('File dữ liệu không đúng định dạng!');
+          }
+        } catch(err) {
+          alert('Lỗi khi mở file JSON!');
+        }
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  const btnDelProject = document.getElementById('btnDeleteProject');
+  if(btnDelProject) {
+    btnDelProject.addEventListener('click', () => {
+      const proj = S.projects.find(p=>p.id===S.currentProjectId);
+      if(!proj) return;
+      openConfirmDeleteModal('dự án', proj.name, () => {
+        const deletedId = S.currentProjectId;
+        S.projects = S.projects.filter(p=>p.id!==deletedId);
+        delete S.checklists[deletedId];
+        delete S.activity[deletedId];
+        db.collection(PROJECTS_COL).doc(deletedId).delete().catch(e=>console.error('[SurveyHub] delete project failed', e));
+        db.collection(CHECKLISTS_COL).doc(deletedId).delete().catch(e=>console.error('[SurveyHub] delete checklist failed', e));
+        db.collection(ACTIVITY_COL).doc(deletedId).delete().catch(e=>console.error('[SurveyHub] delete activity failed', e));
+        S.currentProjectId = S.projects.length ? S.projects[0].id : null;
+        S.view = 'dashboard';
+        render();
+      });
+    });
+  }
+}
+
+/* ---------------- Initialization ---------------- */
+function setupLogLine(msg, cls){
+  const el = document.getElementById('setupLog');
+  const line = document.createElement('div');
+  line.style.color = cls==='ok' ? 'var(--success)' : cls==='err' ? 'var(--danger)' : 'var(--text-muted)';
+  line.textContent = msg;
+  el.appendChild(line);
+}
+
+async function runAdminSetup(){
+  const btn = document.getElementById('btnRunSetup');
+  const email = (document.getElementById('setupEmail').value||'').trim().toLowerCase();
+  const pass = document.getElementById('setupPass').value||'';
+  document.getElementById('setupLog').innerHTML = '';
+  if(!email || !pass){ setupLogLine('Cần nhập đủ email và mật khẩu.', 'err'); return; }
+  btn.disabled = true;
+  try {
+    setupLogLine('Đang tạo tài khoản đăng nhập...');
+    try {
+      await auth.createUserWithEmailAndPassword(email, pass);
+      setupLogLine('✔ Đã tạo tài khoản đăng nhập mới.', 'ok');
+    } catch(err){
+      if(err.code === 'auth/email-already-in-use'){
+        setupLogLine('ℹ Tài khoản đã tồn tại — kiểm tra mật khẩu...', 'info');
+        await auth.signInWithEmailAndPassword(email, pass);
+        setupLogLine('✔ Mật khẩu khớp, tài khoản dùng được.', 'ok');
+      } else { throw err; }
+    }
+    setupLogLine('Đang gán quyền quản trị cao nhất...');
+    await db.collection(USERS_COL).doc(email).set({
+      email, role:'superadmin', country:'KH', displayName:'Admin', active:true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge:true });
+    setupLogLine('✔ Đã gán quyền quản trị. Đang đăng xuất tạm để Đại ca đăng nhập lại...', 'ok');
+    await auth.signOut();
+    setupLogLine('🎉 Xong! Nhập email/mật khẩu ở form phía trên để đăng nhập.', 'ok');
+  } catch(err){
+    console.error(err);
+    setupLogLine('✘ Lỗi: ' + err.code + ' — ' + err.message, 'err');
+    if(err.code === 'auth/wrong-password'){
+      setupLogLine('→ Tài khoản đã tồn tại với mật khẩu khác. Đổi mật khẩu trong Firebase Console hoặc nhập đúng mật khẩu cũ.', 'err');
+    }
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function init(){
+  loadUser(); // restores the local language preference only
+  localizeLoginScreen();
+  const btnLogin = document.getElementById('btnLogin');
+  if(btnLogin) btnLogin.addEventListener('click', doLogin);
+  document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+
+  const btnToggleSetup = document.getElementById('btnToggleSetup');
+  const setupPanel = document.getElementById('setupPanel');
+  if(btnToggleSetup && setupPanel){
+    btnToggleSetup.addEventListener('click', ()=> setupPanel.classList.toggle('hidden'));
+  }
+  const btnRunSetup = document.getElementById('btnRunSetup');
+  if(btnRunSetup) btnRunSetup.addEventListener('click', runAdminSetup);
+  // Data load + render is driven by auth.onAuthStateChanged once a user is signed in.
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
